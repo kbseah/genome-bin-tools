@@ -28,23 +28,23 @@
 # d <- genomestats("../1236Aa1re1.coverage","../phyla_amphora/phylotype.result.parsed","../barrnap/1236Aa1re1.ssu.tab","../1236Aa1re1.trna.out")
 
 genomestats <- function (covstats,marker.list,ssu.list,trna.list) UseMethod ("genomestats")
-genomestats.default <- function (covstats,marker.list="",ssu.list="",trna.list="") {            # Import files and combine them into an object of class "genomestats"
+genomestats.default <- function (covstats,marker.list=NA,ssu.list=NA,trna.list=NA) {            # Import files and combine them into an object of class "genomestats"
     scaff <- read.table(file=as.character(covstats),sep="\t",header=T)
-    if (marker.list != "" ) {                                                                   # If input marker file is not specified, make the field NA
+    if ( !is.na(marker.list )) {                                                                   # If input marker file is not specified, make the field NA
         mark <- read.table(file=as.character(marker.list),sep="\t",header=T)
         Num_markers <- dim(mark)[1]
     } else {
         mark <- NA
         Num_markers <- NA
     }
-    if (ssu.list != "" ) {
+    if ( !is.na(ssu.list) ) {
         ssu <- read.table(file=as.character(ssu.list),sep="\t",header=T)
         Num_SSU <- dim(ssu)[1]
     } else {
         ssu <- NA
         Num_SSU <- NA
     }
-    if (trna.list != "") {
+    if ( !is.na(trna.list)) {
         trna <- read.table(file=as.character(trna.list),sep="\t",skip=3,header=F)
         names(trna) <- c("scaffold","tRNA_no","tRNA_begin","tRNA_end","tRNA_type","Anticodon","Intron_begin","Intron_end","Cove_score")
         Num_tRNAs <- dim(trna)[1]
@@ -262,27 +262,27 @@ pick.bin.points <- function(num.points=6,draw.polygon=TRUE) {
 ## Differential coverage double plot tools:
 
 diffcovstats <- function (covstats1,covstats2,marker.list,ssu.list,trna.list) UseMethod ("diffcovstats")
-diffcovstats.default <- function (covstats1,covstats2,marker.list="",ssu.list="",trna.list="") {            # Import files and combine them into an object of class "genomestats"
+diffcovstats.default <- function (covstats1,covstats2,marker.list=NA,ssu.list=NA,trna.list=NA) {            # Import files and combine them into an object of class "diffcovstats"
     scaff1 <- read.table(file=as.character(covstats1),sep="\t",header=T)
     scaff2 <- read.table(file=as.character(covstats2),sep="\t",header=T)
     cov1 <- data.frame(ID=scaff1$ID,Avg_fold_1=scaff1$Avg_fold,Ref_GC=scaff1$Ref_GC,Length=scaff1$Length)    # Reformat and merge the coverage information from tables
     cov2 <- data.frame(ID=scaff2$ID,Avg_fold_2=scaff2$Avg_fold)
     diffcov <- merge(cov1,cov2,by="ID")
-    if (marker.list != "" ) {                                                                   # If input marker file is not specified, make the field NA
+    if ( !is.na(marker.list) ) {                                                                   # If input marker file is not specified, make the field NA
         mark <- read.table(file=as.character(marker.list),sep="\t",header=T)
         Num_markers <- dim(mark)[1]
     } else {
         mark <- NA
         Num_markers <- NA
     }
-    if (ssu.list != "" ) {
+    if ( !is.na(ssu.list) ) {
         ssu <- read.table(file=as.character(ssu.list),sep="\t",header=T)
         Num_SSU <- dim(ssu)[1]
     } else {
         ssu <- NA
         Num_SSU <- NA
     }
-    if (trna.list != "") {
+    if ( !is.na(trna.list) ) {
         trna <- read.table(file=as.character(trna.list),sep="\t",skip=3,header=F)
         names(trna) <- c("scaffold","tRNA_no","tRNA_begin","tRNA_end","tRNA_type","Anticodon","Intron_begin","Intron_end","Cove_score")
         Num_tRNAs <- dim(trna)[1]
