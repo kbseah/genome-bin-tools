@@ -1,9 +1,10 @@
 # Interactive metagenome binning tools
 
 Contact: Brandon Seah (kbseah@mpi-bremen.de)
-Cite: Brandon Seah (2014), genome-bin-tools, Online:
 
-## Introduction
+Cite: Brandon Seah (2014), genome-bin-tools, Online: https://github.com/kbseah/genome-bin-tools
+
+## 0. Introduction
 
 Various tools and approaches exist for metagenomic binning - the process of defining individual genomes in a metagenomic assembly. These tools are designed for interactive exploration and binning of low-diversity microbial metagenomes in R.
 
@@ -21,9 +22,9 @@ Genome-bin-tools builds on concepts from Multi-metagenome, but it offers more:
  * Needing minimal software installation - start R, import some tables, load R functions, and go!
  * Interactive - select bins, see summary statistics for bins, save scaffold lists for later processing
 
-## Produce and annotate metagenomic assembly
+## 1. Produce and annotate metagenomic assembly
 
-### Assemble the metagenome and calculate coverage
+### 1a. Assemble the metagenome and calculate coverage
 
 Use an assemblier like IDBA-UD or SPAdes to assemble your genome. The assembly should be in a Fasta file. Calculate coverage with bbmap.sh by mapping the original reads used to assemble the metagenome back onto the assembly:
 
@@ -37,7 +38,7 @@ For differential coverage binning, you will need a second read library from a di
  $ bbmap.sh ref=assembly.fasta nodisk in=reads_sample2.fq.gz covstats=assembly.coverage2
 ```
 
-### Identify marker genes and find phylogenetic affiliation (optional)
+### 1b. Identify marker genes and find phylogenetic affiliation (optional)
 
 Use AMPHORA2 (https://github.com/martinwu/AMPHORA2) or Phyla-AMPHORA (https://github.com/martinwu/Phyla_AMPHORA) to identify conserved marker genes in your assembly, and to assign a taxonomic position. Parse the output of the script Phylotyping.pl (here called phylotype.result) for import into R:
 ```
@@ -46,7 +47,7 @@ Use AMPHORA2 (https://github.com/martinwu/AMPHORA2) or Phyla-AMPHORA (https://gi
 
 This generates a file called phylotype.result.parsed which will be imported into R.
 
-### Identify rRNA genes (optional)
+### 1c. Identify rRNA genes (optional)
 
 Use barrnap (http://www.vicbioinformatics.com/software.barrnap.shtml) to detect SSU rRNA genes in the assembly, and assign phylotype using Usearch (http://www.drive5.com/usearch/) against a curated SILVA (www.arb-silva.de/) database. The database has to be prepared in a specific way (instructions to come) but is identical to the Usearch-indexed database used by PhyloFlash (https://bitbucket.org/HGV/phyloflash.git). PhyloFlash is also a great tool, why not check it out? (Disclosure: I helped to develop PhyloFlash).
 
@@ -57,7 +58,7 @@ The rRNA extraction and output parsing is done with a wrapper script:
 
 This generates a file called <output_prefix>.ssu.tab which will be imported into R.
 
-### Identify tRNA genes (optional)
+### 1d. Identify tRNA genes (optional)
 
 Use tRNAscan-SE version 1.23 (http://selab.janelia.org/tRNAscan-SE/) to find tRNA genes. 
 
@@ -67,11 +68,11 @@ Use tRNAscan-SE version 1.23 (http://selab.janelia.org/tRNAscan-SE/) to find tRN
 
 The output trnascan.results is directly imported into R.
 
-### Do a quick preliminary plot
+### 1e. Do a quick preliminary plot
 
 (To be updated)
 
-## Load functions into R
+## 2. Load functions into R
 
 Start R. Required packages are `sp` and `plyr`, which can be installed like so:
 
@@ -86,7 +87,7 @@ Load the R functions that you will use to explore the data you have generated:
  > source("genome_bin_tools.r")
 ```
 
-## Explore GC-coverage plots
+## 3. Explore GC-coverage plots
 
 GC-coverage plots are generated from single samples (i.e. coverage statistics from mapping a single read library onto a single assembly).
 
@@ -104,7 +105,7 @@ Type the name of the object to see a summary:
  > d
 ```
 
-### Plotting
+### 3a. Plotting
 
 ```R
  > plot(d) # basic plot, if marker.list was imported, then colored automatically by marker taxonomy
@@ -118,7 +119,7 @@ Type the name of the object to see a summary:
 
 Zoom into specific areas of the plot by altering the `xlim` and `ylim` parameters, as with the basic `plot` function in R.
 
-### Interactively choosing genomic bins
+### 3b. Interactively choosing genomic bins
 
 If you see a cluster of scaffolds which you would like to save as a bin, you can choose it interactively by picking the points that draw a polygon surrounding the scaffolds you want:
 
@@ -130,7 +131,7 @@ If you see a cluster of scaffolds which you would like to save as a bin, you can
 
 `bin` is now an object of class genomestatsbin. Type the name of the bin object to see a summary of the bin. If you imported the marker, SSU, and/or tRNA data, a summary of how many of each are contained in the bin will be reported (this is useful if the marker genes are typical single-copy genes, for example).
 
-### Fishing for connected contigs using Fastg files (experimental)
+### 3c. Fishing for connected contigs using Fastg files (experimental)
 
 Fastg files are generated by newer versions of the SPAdes assembler, and contain contig connectivity information generated during the assembly process. These can be useful, e.g. to "fish" scaffolds that are from the same genome but which were inadvertently left out of the interactively chosen bin.
 
@@ -151,7 +152,7 @@ You can compare the two bins by plotting them overlaid:
  > points(bin1,col="black") # The original bin in black
 ```
 
-## Explore differential coverage plots
+## 4. Explore differential coverage plots
 
 Differential coverage plots are generated from two separate coverage files (in this example: `assembly.coverage` and `assembly.coverage2`). The tools use analogous object classes `diffcovstats` and `diffcovstatsbin` (for bins defined from differential coverage plots).
 
@@ -163,7 +164,7 @@ Import data:
 
 Type the object name to see a summary. 
 
-### Plotting
+### 4a. Plotting
 
 Analogous to plotting for genomestats objects, but with option of coloring by markers or by GC value:
 
@@ -177,7 +178,7 @@ Analogous to plotting for genomestats objects, but with option of coloring by ma
  > plot(D,trna=TRUE) # Mark scaffolds containing tRNA genes with crosses
 ```
 
-### Interactively choosing genomic bins
+### 4b. Interactively choosing genomic bins
 
 Identical syntax to `choosebin.genomestats`:
 
@@ -185,10 +186,11 @@ Identical syntax to `choosebin.genomestats`:
  > Bin1 <- choosebin.diffcovstats(D)
 ```
 
-### Fishing for connected contigs with Fastg data (experimental)
+### 4c. Fishing for connected contigs with Fastg data (experimental)
 
 Identical syntax to `fastg_fishing.genomestats`:
 
 ```R
  > Bin2 <- fastg_fishing.genomestats(D,Bin1,"/path/to/file.fastg")
 ```
+
