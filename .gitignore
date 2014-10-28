@@ -1,0 +1,3 @@
+# Tell git to ignore the following files
+# Ignore text editor backup files
+*~
