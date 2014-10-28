@@ -19,7 +19,7 @@ Examples of tools that use differential coverage binning:
  * GroopM (http://minillinim.github.io/GroopM/)
 
 Genome-bin-tools offers:
- * Higher-level functions for plotting - So 
+ * Higher-level functions for plotting - Save time spent on typing and copy-pasting commands
  * Designed to work with free assembly and annotation tools (BBMap for mapping, barrnap for finding rRNAs, tRNAscan-SE for finding tRNAs, AMPHORA2 for finding marker genes)
  * Needing minimal software installation - start R, import some tables, load R functions, and go!
  * Interactive - select bins, see summary statistics for bins, save scaffold lists for later processing

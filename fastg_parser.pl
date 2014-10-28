@@ -26,6 +26,7 @@ use Getopt::Long;
 my $input_fastg;		# input fastg filename
 my $input_bait_file;		# list of contigs to use as bait for connectivity fishing; names of contigs should be identical to those in headers, and without > or ; characters
 my $output_prefix;		# Prefix for all the output files for each run
+my $Rflag=0;			# Flag for calling this script from within R with genome_bin_tools.r -- also sends list of fished contigs to STDOUT
 my $intra_nodes_counter = 0;	# Counter for number of contigs, for logfile reporting
 my $inter_nodes_counter = 0;	# Counter for number of connections between contigs, for logfile reporting
 my $baits_counter = 0;		# Counter for initial number of bait contigs
@@ -40,9 +41,10 @@ my %length_hash;		# Hash to store length values for each Fastg entry
 
 if (! @ARGV) { usage(); }
 GetOptions (
-	"input|i=s" => \$input_fastg,	# input Fastg file
-	"bait|b=s" => \$input_bait_file,	# bait file for fishing
-	"output|o=s" => \$output_prefix	# prefix for output files
+    "input|i=s" => \$input_fastg,	# input Fastg file
+    "bait|b=s" => \$input_bait_file,	# bait file for fishing
+    "output|o=s" => \$output_prefix,	# prefix for output files
+    "rflag|r" => \$Rflag
 )
 or usage(); 
 
@@ -50,32 +52,40 @@ or usage();
 ## MAIN
 
 open (LOGFILE, "> $output_prefix\.log") or die ("Cannot open log file for writing:$!\n");	# Start the log file
-	print LOGFILE "FASTG parsing tool by Brandon Seah 2014-10-15... \"Don't blame me!\"\n";
-	print LOGFILE "Started FASTG parsing tool\n";
+    print LOGFILE "FASTG parsing tool by Brandon Seah 2014-10-15... \"Don't blame me!\"\n";
+    print LOGFILE "Started FASTG parsing tool\n";
 my $datetime = localtime();
-	print LOGFILE $datetime, "\n";
-	print LOGFILE "**********************************************************************\n";
-	print LOGFILE "\n";
+    print LOGFILE $datetime, "\n";
+    print LOGFILE "**********************************************************************\n";
+    print LOGFILE "\n";
 count_GC();
 write_sif_output();
 write_cytoscape_simple();
-	print LOGFILE "Input FASTG file:       ", $input_fastg, "\n";
-	print LOGFILE "  Contained ", $intra_nodes_counter, " contigs and ", $inter_nodes_counter, " connections (including self-connections)\n";
+    print LOGFILE "Input FASTG file:       ", $input_fastg, "\n";
+    print LOGFILE "  Contained ", $intra_nodes_counter, " contigs and ", $inter_nodes_counter, " connections (including self-connections)\n";
 my %fishing_hash = %contigs_hash;	# create fishing hash from contigs hash
 read_bait();				# read bait file, which converts values of all keys found in the initial bait file to 0 in the fishing hash
-	print LOGFILE "Input bait file:        ", $input_bait_file, "\n";
-	print LOGFILE "  Containing ", $baits_counter, " contigs of interest\n";
+    print LOGFILE "Input bait file:        ", $input_bait_file, "\n";
+    print LOGFILE "  Containing ", $baits_counter, " contigs of interest\n";
 perform_fishing();
 write_fastg_output();
-	print LOGFILE "\n";
-	print LOGFILE "Found ", $fished_counter, " contigs connected to the bait contigs (including bait contigs in total count)\n";
-	print LOGFILE "Output files prefix:    ", $output_prefix, "\n";
+if ($Rflag) {                                       # If calling this script from within R function
+    foreach my $thekey (keys %fishing_hash) {
+        if ($fishing_hash{$thekey}==0) {
+            print STDOUT $thekey, "\n";             # Print list of fished contigs to the STDOUT
+        }
+        
+    }
+}
+    print LOGFILE "\n";
+    print LOGFILE "Found ", $fished_counter, " contigs connected to the bait contigs (including bait contigs in total count)\n";
+    print LOGFILE "Output files prefix:    ", $output_prefix, "\n";
 $datetime = localtime();
-	print LOGFILE "\n";
-	print LOGFILE "Job finished\n";
-	print LOGFILE $datetime, "\n";
-	print LOGFILE "\n";
-	print LOGFILE "**********************************************************************\n";
+    print LOGFILE "\n";
+    print LOGFILE "Job finished\n";
+    print LOGFILE $datetime, "\n";
+    print LOGFILE "\n";
+    print LOGFILE "**********************************************************************\n";
 print STDERR "Job finished\n";
 close (LOGFILE);
 
@@ -83,44 +93,44 @@ close (LOGFILE);
 ## SUBROUTINES
 
 sub usage {				# Usage message - print and exit when script called without arguments
-	print STDERR "\n";
-	print STDERR " ******************************************************************************************************************************************\n";
-	print STDERR "   FASTG format parsing tool ** Brandon Seah 2014-10-15 ** \"Don't blame me\"        \n";
-	print STDERR "   Usage:                                                                           \n";
-	print STDERR "   \$ perl fastg_parser_04.pl \\                                                    \n";
-	print STDERR "      -i <input Fastg filename> \\                                                  \n";
-	print STDERR "      -b <file with list of contigs as bait to retrieve connected contigs> \\       \n";
-	print STDERR "      -o <output prefix for output of parser tool>                                  \n";
-	print STDERR "   The parser will generate the following output files:                             \n";
-	print STDERR "    <output_prefix>.simple.tsv        TSV format graph file of connectivity, each contig represented by one node\n";
-        print STDERR "    <output_prefix>.attr.tsv          TSV format table with info for each contig, import as attribute table for simple graph in Cytoscape\n";
-	print STDERR "    <output prefix>.sif               SIF format graph file of connectivity, each contig represented by two nodes (5\' and 3\' ends)\n";
-	print STDERR "    <output prefix>.tsv               TSV format graph file of connectivity, each contig represented by two nodes (5\' and 3\' ends)\n";
-	print STDERR "    <output prefix>.fasta             Fasta file with fished contigs                \n";
-	print STDERR "    <output prefix>.fastg             Fastg file with fished contigs                \n";
-	print STDERR "    <output prefix>.log               Log file with summary of the parser run       \n";
-	print STDERR " *******************************************************************************************************************************************\n";
-	print STDERR "\n";
-	exit;
+    print STDERR "\n";
+    print STDERR " ******************************************************************************************************************************************\n";
+    print STDERR "   FASTG format parsing tool ** Brandon Seah 2014-10-15 ** \"Don't blame me\"        \n";
+    print STDERR "   Usage:                                                                           \n";
+    print STDERR "   \$ perl fastg_parser_04.pl \\                                                    \n";
+    print STDERR "      -i <input Fastg filename> \\                                                  \n";
+    print STDERR "      -b <file with list of contigs as bait to retrieve connected contigs> \\       \n";
+    print STDERR "      -o <output prefix for output of parser tool>                                  \n";
+    print STDERR "   The parser will generate the following output files:                             \n";
+    print STDERR "    <output_prefix>.simple.tsv        TSV format graph file of connectivity, each contig represented by one node\n";
+    print STDERR "    <output_prefix>.attr.tsv          TSV format table with info for each contig, import as attribute table for simple graph in Cytoscape\n";
+    print STDERR "    <output prefix>.sif               SIF format graph file of connectivity, each contig represented by two nodes (5\' and 3\' ends)\n";
+    print STDERR "    <output prefix>.tsv               TSV format graph file of connectivity, each contig represented by two nodes (5\' and 3\' ends)\n";
+    print STDERR "    <output prefix>.fasta             Fasta file with fished contigs                \n";
+    print STDERR "    <output prefix>.fastg             Fastg file with fished contigs                \n";
+    print STDERR "    <output prefix>.log               Log file with summary of the parser run       \n";
+    print STDERR " *******************************************************************************************************************************************\n";
+    print STDERR "\n";
+    exit;
 }
 
 sub count_GC {
 open(READFASTG, "< $input_fastg") or die ("Error! Cannot open Fastg input file: $input_fastg \: $!\n");
 my $current_node;		# Current contig being counted
 while(<READFASTG>) {
-	chomp;
-	if ($_ =~ /^\>/) {				# If this is a header line...
-		my $stripped_line = $_;			# Parse the header
-		$stripped_line =~ s/[\>;]//g;
-		my @nodes_array = split (":", $stripped_line);
-		$current_node=$nodes_array[0];		# Update the current contig
-		$length_hash{$current_node}=0;		# Reset the counters
-		$gc_hash{$current_node}=0;		# Reset the counters
-	}
-	else {						# Otherwise, keep counting
-		$length_hash{$current_node} += length($_);	# Add base count to total length for this contig
-		while ($_ =~ /[GCgc]/g) { $gc_hash{$current_node}++; }	# Count numbers of GC bases in this line
-	}
+    chomp;
+    if ($_ =~ /^\>/) {				# If this is a header line...
+        my $stripped_line = $_;			# Parse the header
+        $stripped_line =~ s/[\>;]//g;
+        my @nodes_array = split (":", $stripped_line);
+        $current_node=$nodes_array[0];		# Update the current contig
+        $length_hash{$current_node}=0;		# Reset the counters
+        $gc_hash{$current_node}=0;		# Reset the counters
+    }
+    else {						# Otherwise, keep counting
+        $length_hash{$current_node} += length($_);	# Add base count to total length for this contig
+        while ($_ =~ /[GCgc]/g) { $gc_hash{$current_node}++; }	# Count numbers of GC bases in this line
+    }
 }
 close(READFASTG);
 }
@@ -131,36 +141,36 @@ open (TSVOUTPUT, "> $output_prefix\.tsv") or die ("Error! Cannot open TSV file f
 print TSVOUTPUT "node1\t", "interaction\t", "node2\t", "length\t", "coverage\t", "GC", "\n";		# header line for the TSV output file
 open(FASTGINPUT, "< $input_fastg") or die("Error! Cannot open Fastg input file: $input_fastg \: $!\n");
 while (<FASTGINPUT>) {
-	chomp;
-	if ($_ =~ /^\>/) { 
-		my $stripped_line = $_;
-		push @headers_array, $stripped_line;			# push header line verbatim to array of headers
-		$stripped_line =~ s/[\>;]//g;				# remove extraneous characters from headers
-		my @nodes_array = split(":", $stripped_line);		# split header into the component connected nodes
-		$contigs_hash{$nodes_array[0]} = 1;			# save the node as a key in the contigs hash
-		my @attributes_array = split("_", $nodes_array[0]);	# split the node name into its components to extract the length and coverage information
-		my $gc_frac = $gc_hash{$nodes_array[0]}/$length_hash{$nodes_array[0]};	# calculate the GC%
-		print SIFOUTPUT $nodes_array[0],"_5 ", "intra ", "$nodes_array[0]", "_3\n";		# print to graph SIF file, with contig represented as 5' and 3' nodes connected by an internal edge
-		print TSVOUTPUT $nodes_array[0],"_5\t", "intra\t", $nodes_array[0], "_3\t", $length_hash{$nodes_array[0]}, "\t", $attributes_array[5],"\t", $gc_frac, "\t\n";	# print to graph TSV file
-		$intra_nodes_counter++;
-		if (scalar @nodes_array > 1) {
-			for (my $i=1; $i < scalar @nodes_array; $i++) {
-				if ($nodes_array[$i] =~ /'$/) {		# if the connected node is annotated with a ', meaning it is connected as reverse-complement to the first contig
-					my $thisnode = $nodes_array[$i];
-					$thisnode =~ s/\'//g;	# strip the ' character from node name
-					print SIFOUTPUT $nodes_array[0],"_3 ", "inter ", $thisnode, "_3\n";	# print to graph SIF file, connection between 3' end of first contig and 3' end of this contig
-					print TSVOUTPUT $nodes_array[0], "_3\t", "inter\t", $thisnode, "_3\t", "\t\n";
-					$inter_nodes_counter++;
-				}
-				else {
-					print SIFOUTPUT $nodes_array[0],"_3 ", "inter ", $nodes_array[$i], "_5\n";	# print to graph SIF file, connection between 3' end of first contig and 5' start of this contig
-					print TSVOUTPUT $nodes_array[0], "_3\t", "inter\t", $nodes_array[$i], "_5\t", "\t\n";
-					$inter_nodes_counter++;
-				}
-			}
-		}
-	}
-	else { next; }
+    chomp;
+if ($_ =~ /^\>/) { 
+        my $stripped_line = $_;
+        push @headers_array, $stripped_line;			# push header line verbatim to array of headers
+        $stripped_line =~ s/[\>;]//g;				# remove extraneous characters from headers
+        my @nodes_array = split(":", $stripped_line);		# split header into the component connected nodes
+        $contigs_hash{$nodes_array[0]} = 1;			# save the node as a key in the contigs hash
+        my @attributes_array = split("_", $nodes_array[0]);	# split the node name into its components to extract the length and coverage information
+        my $gc_frac = $gc_hash{$nodes_array[0]}/$length_hash{$nodes_array[0]};	# calculate the GC%
+        print SIFOUTPUT $nodes_array[0],"_5 ", "intra ", "$nodes_array[0]", "_3\n";		# print to graph SIF file, with contig represented as 5' and 3' nodes connected by an internal edge
+        print TSVOUTPUT $nodes_array[0],"_5\t", "intra\t", $nodes_array[0], "_3\t", $length_hash{$nodes_array[0]}, "\t", $attributes_array[5],"\t", $gc_frac, "\t\n";	# print to graph TSV file
+        $intra_nodes_counter++;
+        if (scalar @nodes_array > 1) {
+            for (my $i=1; $i < scalar @nodes_array; $i++) {
+                if ($nodes_array[$i] =~ /'$/) {		# if the connected node is annotated with a ', meaning it is connected as reverse-complement to the first contig
+                    my $thisnode = $nodes_array[$i];
+                    $thisnode =~ s/\'//g;	# strip the ' character from node name
+                    print SIFOUTPUT $nodes_array[0],"_3 ", "inter ", $thisnode, "_3\n";	# print to graph SIF file, connection between 3' end of first contig and 3' end of this contig
+                    print TSVOUTPUT $nodes_array[0], "_3\t", "inter\t", $thisnode, "_3\t", "\t\n";
+                    $inter_nodes_counter++;
+                }
+                else {
+                    print SIFOUTPUT $nodes_array[0],"_3 ", "inter ", $nodes_array[$i], "_5\n";	# print to graph SIF file, connection between 3' end of first contig and 5' start of this contig
+                    print TSVOUTPUT $nodes_array[0], "_3\t", "inter\t", $nodes_array[$i], "_5\t", "\t\n";
+                    $inter_nodes_counter++;
+                }
+            }
+        }
+    }
+    else { next; }
 }
 close(FASTGINPUT);
 close (SIFOUTPUT);
