@@ -82,7 +82,15 @@ Start R. Required packages are `sp` and `plyr`, which can be installed like so:
  > install.packages("plyr")
 ```
 
-Load the R functions that you will use to explore the data you have generated:
+Install the genome.bin.tools package in R:
+
+```R
+ > install.packages("/path/to/genome.bin.tools_1.0.tar.gz",repos=NULL,type="source")
+```
+
+This is recommended because you can call help() to read the documentation for each function within the R environment.
+
+Alternatively, load the R functions with source (recommended if you want to tweak them or use experimental features):
 
 ```R
  > source("genome_bin_tools.r")
