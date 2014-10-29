@@ -36,7 +36,15 @@ sub usage {
     print STDERR "\n";
     print STDERR "Parse results from Phyla-AMPHORA or AMPHORA2 Phylotyping.pl script for import to R\n";
     print STDERR "\n";
-    print STDERR "Usage: perl parse_phylotype_result.pl -p <results_file>\n";
+    print STDERR "Usage: \n";
+    print STDERR " \$ perl parse_phylotype_result.pl -p <results_file>\n";
+    print STDERR "\n";
+    print STDERR "Options:\n";
+    print STDERR " \t -p FILE     Results from the script Phylotyping.pl in the AMPHORA2 or Phyla-AMPHORA packages\n";
+    print STDERR "\n";
+    print STDERR "Output:\n";
+    print STDERR " \t <results_file>.parsed    Suitable for import to R\n";
+    print STDERR "\n";
     exit;
 }
 

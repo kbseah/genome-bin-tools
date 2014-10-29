@@ -47,7 +47,21 @@ sub usage {
     print STDERR "\n";
     print STDERR "Extract SSU from assembly, search against Silva SSU database, and parse taxonomy output\n";
     print STDERR "\n";
-    print STDERR "Usage: perl get_ssu_for_genome_bin_tools.pl -d <path_to_ssu_db> -c <CPUs> -a <assembly.fasta> -o <output_prefix> -t <taxon_level> \n";
+    print STDERR "Usage: \n";
+    print STDERR " \$ perl get_ssu_for_genome_bin_tools.pl -d <path_to_ssu_db> -c <CPUs> -a <assembly.fasta> -o <output_prefix> \n";
+    print STDERR "\n";
+    print STDERR "Options: \n";
+    print STDERR " \t -d FILE     Location of SILVA SSU database with taxonomy string, indexed by Usearch\n";
+    print STDERR " \t -c INT      Number of processors for barrnap and Usearch \(default: 1\)\n";
+    print STDERR " \t -a FILE     Genome assembly in Fasta format\n";
+    print STDERR " \t -o STRING   Prefix for output files\n";
+    print STDERR "\n";
+    print STDERR "Output: \n";
+    print STDERR " \t <output_prefix>.ssu.tab                 Table of predicted SSU genes and their taxonomic affiliations\n";
+    print STDERR " \t tmp.<output_prefix>.scaffolds.gff       Concatenated output from Barrnap searches\n";
+    print STDERR " \t <output_prefix>.barrnap.ssu.gff         Predicted SSU genes, with duplicates removed, GFF feature table\n";
+    print STDERR " \t <output_prefix>.barrnap.ssu.fasta       Fasta formatted sequences of SSU genes predicted by Barrnap\n";
+    print STDERR " \t <output_prefix>.barrnap.ssu.usearch.out Usearch results of predicted SSU sequences from assembly vs. Silva database\n";
     print STDERR "\n";
     exit;
 }

@@ -26,7 +26,7 @@ Genome-bin-tools builds on concepts from Multi-metagenome, but it offers more:
 
 ### 1a. Assemble the metagenome and calculate coverage
 
-Use an assemblier like IDBA-UD or SPAdes to assemble your genome. The assembly should be in a Fasta file. Calculate coverage with bbmap.sh by mapping the original reads used to assemble the metagenome back onto the assembly:
+Use your favorite assemblier, like IDBA-UD (http://i.cs.hku.hk/~alse/hkubrg/projects/idba/) or SPAdes (http://bioinf.spbau.ru/spades), to assemble your metagenome. The assembly should be in a Fasta file. Calculate coverage with bbmap.sh (http://sourceforge.net/projects/bbmap/) by mapping the original reads used to assemble the metagenome back onto the assembly:
 
 ```
  $ bbmap.sh ref=assembly.fasta nodisk in=reads.fq.gz covstats=assembly.coverage
@@ -40,7 +40,8 @@ For differential coverage binning, you will need a second read library from a di
 
 ### 1b. Identify marker genes and find phylogenetic affiliation (optional)
 
-Use AMPHORA2 (https://github.com/martinwu/AMPHORA2) or Phyla-AMPHORA (https://github.com/martinwu/Phyla_AMPHORA) to identify conserved marker genes in your assembly, and to assign a taxonomic position. Parse the output of the script Phylotyping.pl (here called phylotype.result) for import into R:
+Use AMPHORA2 (https://github.com/martinwu/AMPHORA2) or Phyla-AMPHORA (https://github.com/martinwu/Phyla_AMPHORA) to identify conserved marker genes in your assembly, and to assign a taxonomic position. Parse the output of their script Phylotyping.pl (here called `phylotype.result`) for import into R:
+
 ```
  $ perl parse_phylotype_result.pl -p phylotype.result
 ```
@@ -170,10 +171,10 @@ Analogous to plotting for genomestats objects, but with option of coloring by ma
 
 ```R
  > plot(D) # Basic plot. Defaults to coloring by marker genes, if data imported
- > plot(D,marker=F,gc=F) # Uncolored plot
- > plot(D,marker=T,legend=T) # Add legend
- > plot(D,gc=T,marker=F) # Color by GC
- > plot(D,gc=T,marker=F,legend=T) # Add color scale for GC values
+ > plot(D,marker=FALSE,gc=FALSE) # Uncolored plot
+ > plot(D,marker=TRUE,legend=TRUE) # Add legend
+ > plot(D,gc=TRUE,marker=FALSE) # Color by GC
+ > plot(D,gc=TRUE,marker=FALSE,legend=TRUE) # Add color scale for GC values
  > plot(D,ssu=TRUE) # Mark scaffolds containing SSU rRNA genes with crosshairs
  > plot(D,trna=TRUE) # Mark scaffolds containing tRNA genes with crosses
 ```
