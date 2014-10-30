@@ -24,18 +24,22 @@ Genome-bin-tools builds on concepts from Multi-metagenome, but it offers more:
 
 ## 1. Produce and annotate metagenomic assembly
 
+If you want to follow along, you can use the data from Albertsen et al. 2013, which is in the folder `example_data`. The file names in the following examples use the file names of the example data. (NB: The original header names of the assembly Fasta file were edited to be shorter.)
+
 ### 1a. Assemble the metagenome and calculate coverage
 
 Use your favorite assemblier, like IDBA-UD (http://i.cs.hku.hk/~alse/hkubrg/projects/idba/) or SPAdes (http://bioinf.spbau.ru/spades), to assemble your metagenome. The assembly should be in a Fasta file. Calculate coverage with bbmap.sh (http://sourceforge.net/projects/bbmap/) by mapping the original reads used to assemble the metagenome back onto the assembly:
 
 ```
- $ bbmap.sh ref=assembly.fasta nodisk in=reads.fq.gz covstats=assembly.coverage
+ $ bbmap.sh ref=HPminus_assembly.fasta nodisk in=HPminus_reads.fq.gz covstats=HPminus.coverage
 ```
+
+BBmap is convenient because it calculates length and GC along with the coverage per scaffold, and outputs them all to the same file. If you use a different mapping tool, you will have to aggregate all these data together in a tab-separated table with the same header names as the bbmap output.
 
 For differential coverage binning, you will need a second read library from a different sample where at least some of the genomes present in the first sample should also be present. Map the second read library onto the same assembly and save the coverage values as a different file:
 
 ```
- $ bbmap.sh ref=assembly.fasta nodisk in=reads_sample2.fq.gz covstats=assembly.coverage2
+ $ bbmap.sh ref=HPminus_assembly.fasta nodisk in=HPplus_reads.fq.gz covstats=HPplus.coverage
 ```
 
 ### 1b. Identify marker genes and find phylogenetic affiliation (optional)
@@ -43,31 +47,31 @@ For differential coverage binning, you will need a second read library from a di
 Use AMPHORA2 (https://github.com/martinwu/AMPHORA2) or Phyla-AMPHORA (https://github.com/martinwu/Phyla_AMPHORA) to identify conserved marker genes in your assembly, and to assign a taxonomic position. Parse the output of their script Phylotyping.pl (here called `phylotype.result`) for import into R:
 
 ```
- $ perl parse_phylotype_result.pl -p phylotype.result
+ $ perl parse_phylotype_result.pl -p phylotype.result > phylotype.result.parsed
 ```
 
-This generates a file called phylotype.result.parsed which will be imported into R.
+This generates a file called `phylotype.result.parsed` which will be imported into R.
 
 ### 1c. Identify rRNA genes (optional)
 
-Use barrnap (http://www.vicbioinformatics.com/software.barrnap.shtml) to detect SSU rRNA genes in the assembly, and assign phylotype using Usearch (http://www.drive5.com/usearch/) against a curated SILVA (www.arb-silva.de/) database. The database has to be prepared in a specific way (instructions to come) but is identical to the Usearch-indexed database used by PhyloFlash (https://bitbucket.org/HGV/phyloflash.git). PhyloFlash is also a great tool, why not check it out? (Disclosure: I helped to develop PhyloFlash).
+Use barrnap (http://www.vicbioinformatics.com/software.barrnap.shtml) to detect SSU rRNA genes in the assembly, and assign phylotype by extacting sequences using fastaFrombed (http://bedtools.readthedocs.org/en/latest/) and then using Usearch (http://www.drive5.com/usearch/) against a curated SILVA (www.arb-silva.de/) database. The database has to be prepared in a specific way (instructions to come) but is identical to the Usearch-indexed database used by PhyloFlash (https://bitbucket.org/HGV/phyloflash.git). PhyloFlash is also a great tool, why not check it out? (Disclosure: I helped to develop PhyloFlash).
 
 The rRNA extraction and output parsing is done with a wrapper script:
 ```
- $ perl get_ssu_for_genome_bin_tools.pl -d <path/to/ssu/database> -c <number_CPUs> -a assembly.fasta -o <output_prefix> 
+ $ perl get_ssu_for_genome_bin_tools.pl -d <path/to/ssu/database> -c <number_CPUs> -a HPminus_assembly.fasta -o <output_prefix> 
 ```
 
-This generates a file called <output_prefix>.ssu.tab which will be imported into R.
+This generates a file called <output_prefix>.ssu.tab (in the example data, HPminus.ssu.tab) which will be imported into R.
 
 ### 1d. Identify tRNA genes (optional)
 
 Use tRNAscan-SE version 1.23 (http://selab.janelia.org/tRNAscan-SE/) to find tRNA genes. 
 
 ```
- $ tRNAscan-SE -G -o trnascan.results assembly.fasta
+ $ tRNAscan-SE -G -o HPminus.trna.tab HPminus_assembly.fasta
 ```
 
-The output trnascan.results is directly imported into R.
+The output HPminus.trna.tab is directly imported into R.
 
 ### 1e. Do a quick preliminary plot
 
@@ -103,7 +107,7 @@ GC-coverage plots are generated from single samples (i.e. coverage statistics fr
 The data are imported as objects of class `genomestats` using the function of the same name:
 
 ```R
- > d <- genomestats(coverage="assembly.coverage",marker.list="phylotype.result.parsed",ssu.list="assembly.ssu.tab",trna.list="trnascan.results")
+ > d <- genomestats(coverage="HPminus.coverage",marker.list="phylotype.result.parsed",ssu.list="HPminus.ssu.tab",trna.list="HPminus.trna.tab")
 ```
 
 These import and parse the files generated earlier. Only the coverage file `assembly.coverage` is required; the rest are optional (though having them will make more informative and useful plots).
@@ -118,7 +122,7 @@ Type the name of the object to see a summary:
 
 ```R
  > plot(d) # basic plot, if marker.list was imported, then colored automatically by marker taxonomy
- > plot(d,cutoff=200) # Do not show scaffolds shorter than 200 bp
+ > plot(d,cutoff=2000) # Do not show scaffolds shorter than 2000 bp
  > plot(d,taxon="Phylum") # Color marker genes at the taxonomic level of "Phylum"
  > plot(d,ssu=TRUE) # Overlay crosshairs marking scaffolds that contain SSU rRNA genes
  > plot(d,ssu=TRUE,textlabel=TRUE) # Add text labels beside crosshairs showing phylotype assigned to SSU rRNA genes
