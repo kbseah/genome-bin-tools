@@ -107,7 +107,7 @@ GC-coverage plots are generated from single samples (i.e. coverage statistics fr
 The data are imported as objects of class `genomestats` using the function of the same name:
 
 ```R
- > d <- genomestats(coverage="HPminus.coverage",marker.list="phylotype.result.parsed",ssu.list="HPminus.ssu.tab",trna.list="HPminus.trna.tab")
+ > d <- genomestats(covstats="HPminus.coverage",marker.list="phylotype.result.parsed",ssu.list="HPminus.ssu.tab",trna.list="HPminus.trna.tab")
 ```
 
 These import and parse the files generated earlier. Only the coverage file `assembly.coverage` is required; the rest are optional (though having them will make more informative and useful plots).
