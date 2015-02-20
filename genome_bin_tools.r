@@ -130,6 +130,7 @@ genomestatsbin.default <- function(shortlist,x,taxon,points=NA,save=FALSE,file="
     bin.numtRNAs <- NA      # Likewise for number of tRNAs
     bin.uniqtRNAs <- NA
     bin.numSSUs <- NA
+    bin.singlemarkers <- NA
     marker.tab <- NA
     marker.stats.subset <- NA
     tRNAs.tab <- NA
@@ -182,6 +183,38 @@ points.genomestatsbin <- function(x,col="black", ...) {     # points method is c
 
 plot.genomestatsbin <- function(x, ... ) {              # inherit the same plot method as genomestats class for simplicity
     plot.genomestats (x, ...)
+}
+
+
+reslicebin <- function(x=NA,bin,save=FALSE,file="bin_scaffolds.list") {
+# Reslice a bin so that it can be plotted on a diffcovstats or genomestats plot generated from an object different to the one originally used to produce the bin (get it?)
+# If no genomestats or diffcovstats object is provided, and save==TRUE, this function will also save the scaffold list of a bin object to an external file.
+    if (class(bin) == "diffcovstatsbin") {
+        scafflist <- as.character(bin$diffcov$ID)
+    }
+    else if (class(bin) == "genomestatsbin") {
+        scafflist <- as.character(bin$scaff$ID)
+    }
+    else { cat ("Argument bin must be a diffcovstatsbin or genomestatsbin object!\n") }
+
+    if ( is.na(x) & save ) {
+        if (class(x)=="genomestatsbin") { write(as.character(bin$scaff$ID),file=file) }
+        else if (class(x)=="diffcovstatsbin") { write(as.character(bin$diffcov$ID),file=file) }
+        cat("List of scaffolds in bin written to external file, but no object returned\n")
+    }
+    else if (!is.na(x)) {
+        if (class(x) == "diffcovstats" | class(x)=="diffcovstatsbin") {
+            reslicedbin <- diffcovstatsbin (shortlist=scafflist, x=x, points=NA, save=save, file=file)
+            return(reslicedbin)
+        }
+        if (class(x) == "genomestats" | class(x) == "genomestatsbin") {
+            reslicedbin <- genomestatsbin (shortlist=scafflist, x=x, points=NA, save=save, file=file)
+            return(reslicedbin)
+        }
+    }
+    else {
+        cat("No genomestats or diffcovstats object given, and save option is FALSE. What do you want to do?\n")
+    }
 }
 
 fastg_fishing.genomestatsbin <- function(x,bin,fastg.file,taxon="Class",save=FALSE,file="fished_bin.list") {
