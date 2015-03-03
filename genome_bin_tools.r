@@ -2,7 +2,8 @@
 
 ## Tools for interactive genome binning in R
 
-## Version 1 - 2014-10-28 - Converted previous version to object-oriented paradigm
+## Version 1   - 2014-10-28 - Converted previous version to object-oriented paradigm
+## Version 1.2 - 2015-03-03 - Added functions winnow and winnow.mark
 ## Contact: kbseah@mpi-bremen.de
 
 ## Required packages:
@@ -185,6 +186,37 @@ plot.genomestatsbin <- function(x, ... ) {              # inherit the same plot 
     plot.genomestats (x, ...)
 }
 
+winnow <- function(x,gc=c(0,1),cov=c(0,Inf),cov2=c(0,Inf),len=c(0,Inf),save=FALSE,file="bin_scaffolds.list") {
+    # "Winnow" a genomestats(bin) or diffcovstats(bin) object by GC%
+    # Only return those contigs which are in that GC range
+    if (class(x) == "genomestatsbin" | class(x) =="genomestats") {
+        scafflist <- as.character(x$scaff$ID[which(x$scaff$Ref_GC >gc[1] & x$scaff$Ref_GC < gc[2] & x$scaff$Avg_fold>cov[1] & x$scaff$Avg_fold<cov[2] & x$scaff$Length>len[1] & x$scaff$Length<len[2])])
+        winnowedbin <- genomestatsbin (shortlist=scafflist, x=x, points=NA, save=save, file=file)
+        return(winnowedbin)
+    }
+    if (class(x) == "diffcovstatsbin" | class(x) == "diffcovstats") {
+        scafflist <- as.character(x$diffcov$ID[which(x$diffcov$Ref_GC > gc[1] & x$diffcov$Ref_GC < gc[2] & x$diffcov$Avg_fold_1>cov[1] & x$diffcov$Avg_fold_1<cov[2] & x$diffcov$Avg_fold_2>cov2[1] & x$diffcov$Avg_fold_2<cov2[2] & x$diffcov$Length>len[1] & x$diffcov$Length<len[2])])
+        winnowedbin <- diffcovstatsbin (shortlist=scafflist, x=x, points=NA, save=save, file=file)
+        return(winnowedbin)
+    }
+    else {cat ("Object must be of class genomestats, genomestatsbin, diffcovstats, or diffcovstatsbin!\n")}
+}
+
+winnow.mark <- function(x,param="Class",value="Gammaproteobacteria",save=FALSE,file="bin_scaffolds.list") {
+    # "Winnow a genomestats or diffcovstats by its marker table
+    # Only return those scaffolds whose marker parameter "param" is of value "value" (e.g. only return all scaffolds with markers whose Class designation is Gammaproteobacteria)
+    if (class(x) == "genomestatsbin" | class(x) == "genomestats") {
+        scafflist <- as.character(x$mark$scaffold[which (x$mark[,which(names(x$mark)==param)] == value)])
+        winnowedbin <- genomestatsbin (shortlist=scafflist, x=x, points=NA, save=save, file=file)
+        return(winnowedbin)
+    }
+    if (class(x) == "diffcovstatsbin" | class(x) == "diffcovstats") {
+        scafflist <- as.character(x$mark$scaffold[which (x$mark[,which(names(x$mark)==param)] == value)])
+        winnowedbin <- diffcovstatsbin (shortlist=scafflist, x=x, points=NA, save=save, file=file)
+        return(winnowedbin)
+    }
+    else {cat("Object must be of class genomestats, genomestatsbin, diffcovstats, or diffcovstatsbin!\n")}
+}
 
 reslicebin <- function(x=NA,bin,save=FALSE,file="bin_scaffolds.list") {
 # Reslice a bin so that it can be plotted on a diffcovstats or genomestats plot generated from an object different to the one originally used to produce the bin (get it?)
