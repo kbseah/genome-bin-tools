@@ -2,7 +2,8 @@
 
 Contact: Brandon Seah (kbseah@mpi-bremen.de)
 
-Cite: Brandon Seah (2014,2015), genome-bin-tools, Online: https://github.com/kbseah/genome-bin-tools
+Cite: Brandon Seah (2015), genome-bin-tools, Online: https://github.com/kbseah/genome-bin-tools
+or via Zenodo: [![DOI](https://zenodo.org/badge/10602/kbseah/genome-bin-tools.svg)](http://dx.doi.org/10.5281/zenodo.15812)
 
 ## 0. Introduction
 
@@ -148,19 +149,19 @@ If you see a cluster of scaffolds which you would like to save as a bin, you can
 
 ### 3c. Taking subsets of genomic bins
 
-If you want to get a subset of scaffolds based on GC, coverage, or length, use the function winnow()
+If you want to get a subset of scaffolds based on GC, coverage, or length, use the function `winnow()`
 
 ```R
  > bin2 <- winnow(d,cov=c(200,Inf)) # Return the subset of contigs in d which have coverage above 200
  > bin2 <- winnow(d,gc=c(0.2,0.5),cov=c(100,200),len=c(1000,Inf)) # Return the subset of scaffolds in d that have GC between 20-50%, coverage 100 to 200, and length above 1000
 ```
 
-If you want to get a subset of scaffolds containing marker genes that belong to a particular taxon, use the function winnow.mark()
+If you want to get a subset of scaffolds containing marker genes that belong to a particular taxon, use the function `winnow.mark()`
 
 ```R
  > bin3 <- winnow.mark(d,param="Class",value="Gammaproteobacteria") # Returns all scaffolds containing a marker gene whose value for "Class" is "Gammaproteobacteria
 ```
-The functions winnow() and winnow.mark() work for both genomestats and diffcovstats objects
+The functions `winnow()` and `winnow.mark()` work for both `genomestats` and `diffcovstats` objects
 
 ### 3d. Fishing for connected contigs using Fastg files (experimental)
 
