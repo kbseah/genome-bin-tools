@@ -5,17 +5,27 @@ Contact: Brandon Seah (kbseah@mpi-bremen.de)
 Cite: Brandon Seah (2015), genome-bin-tools, Online: https://github.com/kbseah/genome-bin-tools
 or via Zenodo: [![DOI](https://zenodo.org/badge/10602/kbseah/genome-bin-tools.svg)](http://dx.doi.org/10.5281/zenodo.15812)
 
+Cite dependencies if you use them:
+* **R** -  R Core Team. 2014. R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. (http://www.R-project.org/)
+* **BBMap** - Bushnell B. 2015. BBMap (http://sourceforge.net/projects/bbmap/)
+* **AMPHORA2** - Wu M, Scott AJ. 2012. Bioinformatics 28 (7) : 1033-1034.
+* **barrnap** - Seemann T. 2014. barrnap (http://www.vicbioinformatics.com/software.barrnap.shtml)
+* **Usearch** - Edgar RC 2010. Bioinformatics 26 (19) : 2460-2461.
+* **ARB-SILVA** - Quast C et al. 2013. Nucleic Acids Research 41 (D1) : D590-D596.
+* **tRNAscan-SE** - Lowe T, Eddy S. 1997. Nucleic Acids Research 25 : 955-964.
+* **Blobology** - Kumar S et al. 2013. Frontiers in Genetics 4 : 237
+
 ## 0. Introduction
 
 Various tools and approaches exist for metagenomic binning - the process of defining individual genomes in a metagenomic assembly. These tools are designed for interactive exploration and binning of low-diversity microbial metagenomes in R.
 
 A useful way to visualize a metagenomic assembly is to plot the coverage (depth) and GC% of the assembled scaffolds. Scaffolds coming from the same genome would tend to have similar coverage and GC%, and so form clusters in the plots. To aid in distinguishing the clusters, the taxonomic affiliation of each scaffold can be evaluated either by searching the entire scaffold sequence against a database like NCBI nr, or by searching specific marker genes. 
 
-Examples of tools that use GC-coverage plots and taxonomic annotation include Blobology (https://github.com/blaxterlab/blobology) and Metawatt (http://sourceforge.net/projects/metawatt/).
+Examples of tools that use GC-coverage plots and taxonomic annotation include [Blobology] (https://github.com/blaxterlab/blobology) and [Metawatt] (http://sourceforge.net/projects/metawatt/).
 
 Another visualization or binning method relies on the variation in coverage for different genomes between different samples. If the coverage of a metagenome assembly in one sample is plotted against the coverage in another sample, individual genomes would again tend to cluster together.
 
-Examples of tools that use differential coverage binning: Multi-metagenome (http://madsalbertsen.github.io/multi-metagenome/), GroopM (http://minillinim.github.io/GroopM/).
+Examples of tools that use differential coverage binning: [Multi-metagenome] (http://madsalbertsen.github.io/multi-metagenome/), [GroopM] (http://minillinim.github.io/GroopM/).
 
 Genome-bin-tools builds on concepts from Multi-metagenome, but it offers more:
  * Higher-level functions for plotting - Save time spent on typing and copy-pasting commands
@@ -29,7 +39,7 @@ If you want to follow along, you can use the data from Albertsen et al. 2013, wh
 
 ### 1a. Assemble the metagenome and calculate coverage
 
-Use your favorite assemblier, like IDBA-UD (http://i.cs.hku.hk/~alse/hkubrg/projects/idba/) or SPAdes (http://bioinf.spbau.ru/spades), to assemble your metagenome. The assembly should be in a Fasta file. Calculate coverage with bbmap.sh (http://sourceforge.net/projects/bbmap/) by mapping the original reads used to assemble the metagenome back onto the assembly:
+Use your favorite assemblier, like [IDBA-UD] (http://i.cs.hku.hk/~alse/hkubrg/projects/idba/) or [SPAdes] (http://bioinf.spbau.ru/spades), to assemble your metagenome. The assembly should be in a Fasta file. Calculate coverage with [bbmap.sh] (http://sourceforge.net/projects/bbmap/) by mapping the original reads used to assemble the metagenome back onto the assembly:
 
 ```
  $ bbmap.sh ref=HPminus_assembly.fasta nodisk in=HPminus_reads.fq.gz covstats=HPminus.coverage
@@ -47,7 +57,7 @@ For differential coverage binning, you will need a second read library from a di
 
 ### 1b. Identify marker genes and find phylogenetic affiliation (optional)
 
-Use AMPHORA2 (https://github.com/martinwu/AMPHORA2) or Phyla-AMPHORA (https://github.com/martinwu/Phyla_AMPHORA) to identify conserved marker genes in your assembly, and to assign a taxonomic position. Parse the output of their script Phylotyping.pl (here called `phylotype.result`) for import into R:
+Use [AMPHORA2] (https://github.com/martinwu/AMPHORA2) or [Phyla-AMPHORA] (https://github.com/martinwu/Phyla_AMPHORA) to identify conserved marker genes in your assembly, and to assign a taxonomic position. Parse the output of their script Phylotyping.pl (here called `phylotype.result`) for import into R:
 
 ```
  $ perl parse_phylotype_result.pl -p phylotype.result > phylotype.result.parsed
@@ -55,9 +65,18 @@ Use AMPHORA2 (https://github.com/martinwu/AMPHORA2) or Phyla-AMPHORA (https://gi
 
 This generates a file called `phylotype.result.parsed` which will be imported into R.
 
+An alternative is to Blast contigs directly against a database like NCBI nt and use the NCBI taxon IDs to assign a taxon to each contig. This is the approach used by [Blobology] (https://github.com/blaxterlab/blobology); one of their scripts has been modified to produce an output table compatible with `genome-bin-tools`.
+They require the NCBI nt Blast database and NCBI taxonomy dump, both of which are available from the NCBI FTP site (see the Blobology manual for instructions). Requires Blast+.
+
+```
+ $ perl blob_annotate_mod.pl --assembly HPminus_assembly.fasta --blastdb /path/to/ncbi/nt --out contig_taxonomy.tab --num_threads 8 --taxdump /path/to/ncbi/taxdump/
+```
+
+The output file `contig_taxonomy.tab` can be substituted in the subsequent workflow for `phylotype.result.parsed`. 
+
 ### 1c. Identify rRNA genes (optional)
 
-Use barrnap (http://www.vicbioinformatics.com/software.barrnap.shtml) to detect SSU rRNA genes in the assembly, and assign phylotype by extacting sequences using fastaFrombed (http://bedtools.readthedocs.org/en/latest/) and then using Usearch (http://www.drive5.com/usearch/) against a curated SILVA (www.arb-silva.de/) database. The database has to be prepared in a specific way (instructions to come) but is identical to the Usearch-indexed database used by PhyloFlash (https://bitbucket.org/HGV/phyloflash.git). PhyloFlash is also a great tool, why not check it out? (Disclosure: I helped to develop PhyloFlash).
+Use [barrnap] (http://www.vicbioinformatics.com/software.barrnap.shtml) to detect SSU rRNA genes in the assembly, and assign phylotype by extacting sequences using [fastaFrombed] (http://bedtools.readthedocs.org/en/latest/) and then using [Usearch] (http://www.drive5.com/usearch/) against a curated [SILVA] (www.arb-silva.de/) database. The database has to be prepared in a specific way (instructions to come) but is identical to the Usearch-indexed database used by [phyloFlash] (https://github.com/HRGV/phyloFlash). PhyloFlash is also a great tool, why not check it out? (Disclosure: I helped to develop phyloFlash).
 
 The rRNA extraction and output parsing is done with a wrapper script:
 ```
@@ -68,7 +87,7 @@ This generates a file called <output_prefix>.ssu.tab (in the example data, HPmin
 
 ### 1d. Identify tRNA genes (optional)
 
-Use tRNAscan-SE version 1.23 (http://selab.janelia.org/tRNAscan-SE/) to find tRNA genes. 
+Use [tRNAscan-SE version 1.23] (http://selab.janelia.org/tRNAscan-SE/) to find tRNA genes. 
 
 ```
  $ tRNAscan-SE -G -o HPminus.trna.tab HPminus_assembly.fasta
@@ -95,9 +114,9 @@ Install the genome.bin.tools package in R:
  > install.packages("/path/to/genome.bin.tools_1.0.tar.gz",repos=NULL,type="source")
 ```
 
-This is recommended because you can call help() to read the documentation for each function within the R environment.
+This is recommended because you can call `help()` to read the documentation for each function within the R environment.
 
-Alternatively, load the R functions with source (recommended if you want to tweak them or use experimental features):
+Alternatively, load the R functions with `source` (recommended if you want to tweak them or use experimental features):
 
 ```R
  > source("genome_bin_tools.r")
@@ -169,7 +188,7 @@ Fastg files are generated by newer versions of the SPAdes assembler, and contain
 
 This needs a genomestatsbin object and produces another genomestatsbin object.
 
-For now you will have to manually edit the `genome_bin_tools.r` file to specify the location of the script `fastg_parser.pl` (included with this package) and also a directory to store temporary files (default: /tmp/). 
+For now you will have to manually edit the `genome_bin_tools.r` file to specify the location of the script `fastg_parser.pl` (included with this package) and also a directory to store temporary files (default: `/tmp/`). 
 
 Fish out a new bin from an old bin using a Fastg file:
 ```R
