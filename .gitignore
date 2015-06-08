@@ -1,3 +1,5 @@
 # Tell git to ignore the following files
 # Ignore text editor backup files
-*~
+*~ 
+# Ignore R package building folder
+R_package/*
