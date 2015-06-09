@@ -199,8 +199,8 @@ add.genomestatsbin <- function(x1, x2) {        # Equivalent to full outer join
     return(result)
 }
 
-loj <- function(x1, x2) UseMethod ("loj")
-loj.genomestatsbin <- function(x1, x2) {        # Non commutative! Equivalent to left outer join
+lej <- function(x1, x2) UseMethod ("lej")
+lej.genomestatsbin <- function(x1, x2) {        # Non commutative! Equivalent to left excluding join
     shortlist <- x1$scaff$ID[which(!x1$scaff$ID %in% x2$scaff$ID)]
     scaff.add <- subset(x1$scaff, ID %in% shortlist)
     bin.nummarkers <- NA    # Initialize value of bin.nummarkers for summary, in case the marker.list is not supplied
@@ -604,7 +604,7 @@ add.diffcovstatsbin <- function(x1, x2) {   # Equivalent to full outer join or u
 }
 
 
-loj.diffcovstatsbin <- function (x1,x2) {   # Equivalent to left outer join, or setdiff in R
+lej.diffcovstatsbin <- function (x1,x2) {   # Equivalent to left excluding join, or setdiff in R
     shortlist <- x1$diffcov$ID[which(!x1$diffcov$ID %in% x2$diffcov$ID)]
     scaff.add <- subset(x1$diffcov, ID %in% shortlist)
     bin.nummarkers <- NA    # Initialize value of bin.nummarkers for summary, in case the marker.list is not supplied
