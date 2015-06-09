@@ -114,44 +114,51 @@ Start R. Required packages are `sp` and `plyr`, which can be installed like so:
  > install.packages("plyr")
 ```
 
-Install the genome.bin.tools package in R:
+Install the gbtools package in R:
 
 ```R
- > install.packages("/PATH/TO/gbt_1.3.tar.gz",repos=NULL,type="source")
+ > install.packages("/PATH/TO/gbtools_2.0.tar.gz",repos=NULL,type="source")
 ```
 
 where `/PATH/TO/` is replaced with the path to wherever you have the R source package.
 
-This is recommended because you can call `help()` to read the documentation for each function within the R environment.
+This is recommended because you can call `help()` or `?` to read the documentation for each function within the R environment.
 
 Alternatively, load the R functions with `source` (recommended if you want to tweak them or use experimental features):
 
 ```R
- > source("genome_bin_tools.r")
+ > source("gbtools.r")
 ```
 
-## 3. Explore GC-coverage plots
+## 3. Import your data into R
 
-GC-coverage plots are generated from single samples (i.e. coverage statistics from mapping a single read library onto a single assembly).
-
-The data are imported as objects of class `genomestats` using the function of the same name:
+`gbtools` treats each assembly and the associated coverage data as a single object of class `gbt`. If you have several coverage tables for the same assembly, you can import them together with the taxon marker, SSU rRNA, and tRNA annotations with the `gbt` function. The examples in this README can be replicated with the files in the `example_data` folder, adapted from the [Multi-metagenome] (http://madsalbertsen.github.io/multi-metagenome/) data set.
 
 ```R
- > d <- genomestats(covstats="HPminus.coverage",marker.list="phylotype.result.parsed",ssu.list="HPminus.ssu.tab",trna.list="HPminus.trna.tab")
+ # If you have a single coverage table, give the filename at the covstats= option
+ > d <- gbt(covstats="HPminus.coverage",mark="phylotype.result.parsed",ssu="HPminus.ssu.tab",trna="HPminus.trna.tab")
+ # With two or more coverage tables, you can import them together with the c() function
+ > d <- gbt(covstats=c("HPminus.coverage","HPplus.coverage"),mark="phylotype.result.parsed",ssu="HPminus.ssu.tab",trna="HPminus.trna.tab")
 ```
+Only the coverage table is required. The rest are optional (though having them will provide more information and prettier plots).
 
-These import and parse the files generated earlier. Only the coverage file `assembly.coverage` is required; the rest are optional (though having them will make more informative and useful plots).
-
-Type the name of the object to see a summary:
+Type the name of the object to see summary statistics:
 
 ```R
  > d
+ > summary(d) # Does the same thing
 ```
 
-### 3a. Plotting
+## 4. Explore GC-coverage plots
+
+### 4a. Basic plotting
+
+GC-coverage plots are generated from single samples (i.e. coverage statistics from mapping a single read library onto a single assembly). Remember that you could import coverage data from several samples with the `gbt()` function into a single `gbt` object. You can specify which sample you want to plot using the `slice=` option:
 
 ```R
- > plot(d) # basic plot, if marker.list was imported, then colored automatically by marker taxonomy
+ > plot(d) # basic plot, defaults to plotting GC-coverage plot with first sample's coverage
+ >         # if marker.list was imported, then colored automatically by marker taxonomy
+ > plot(d,slice=2) # Plot the GC-coverage plot of the second sample instead.
  > plot(d,cutoff=2000) # Do not show scaffolds shorter than 2000 bp
  > plot(d,taxon="Phylum") # Color marker genes at the taxonomic level of "Phylum"
  > plot(d,ssu=TRUE) # Overlay crosshairs marking scaffolds that contain SSU rRNA genes
@@ -162,25 +169,35 @@ Type the name of the object to see a summary:
 
 Zoom into specific areas of the plot by altering the `xlim` and `ylim` parameters, as with the basic `plot` function in R.
 
-### 3b. Interactively choosing genomic bins
+### 4b. Interactively choosing genomic bins
 
-If you see a cluster of scaffolds which you would like to save as a bin, you can choose it interactively by picking the points that draw a polygon surrounding the scaffolds you want:
+If you see a cluster of scaffolds which you would like to save as a bin, you can choose it interactively by picking the points that draw a polygon surrounding the scaffolds you want. You must specify the sample that was used to draw the plot that you are now interacting with, using the `slice=` option. Specifying the wrong sample will give meaningless results.
 
 ```R
- > bin1 <- choosebin(d) # basic function
- > bin1 <- choosebin(d, save=TRUE, file="bin1.scaffolds.list") # Save the names of scaffolds in this bin to an external file called bin1.scaffolds.list
- > bin1 <- choosebin(d,num.points=10) # Change the number of corners of the polygon
+ > bin1 <- choosebin(d, slice=1) # basic function
+ > bin1 <- choosebin(d, slice=1, save=TRUE, file="bin1.scaffolds.list") # Save the names of scaffolds in this bin to an external file called bin1.scaffolds.list
+ > bin1 <- choosebin(d, slice=1, num.points=10) # Change the number of corners of the polygon
 ```
 
-`bin` is now an object of class genomestatsbin. Type the name of the bin object to see a summary of the bin. If you imported the marker, SSU, and/or tRNA data, a summary of how many of each are contained in the bin will be reported (this is useful if the marker genes are typical single-copy genes, for example).
+`bin` is now an object of class `gbtbin`. Type the name of the bin object to see a summary of the bin. If you imported the marker, SSU, and/or tRNA data, a summary of how many of each are contained in the bin will be reported (this is useful if the marker genes are typical single-copy genes, for example).
 
-### 3c. Taking subsets of genomic bins
+### 4c. Visualize bin for different samples
+
+Let's say you've defined a bin based on the GC-coverage plot of sample 1. You want to see if they are still clustering together in sample 2. All you have to do is to draw a new plot and draw in the points of your bin, but change the `slice=` parameter to show sample 2 instead.
+
+```R
+ > plot(d,slice=2) # Plot the GC-coverage plot for the assembly using coverage data from sample 2
+ > points(bin1, slice=2) # Overlay with your bin, using coverage data from sample 2
+```
+
+### 4d. Taking subsets of genomic bins
 
 If you want to get a subset of scaffolds based on GC, coverage, or length, use the function `winnow()`
 
 ```R
- > bin2 <- winnow(d,cov=c(200,Inf)) # Return the subset of contigs in d which have coverage above 200
- > bin2 <- winnow(d,gc=c(0.2,0.5),cov=c(100,200),len=c(1000,Inf)) # Return the subset of scaffolds in d that have GC between 20-50%, coverage 100 to 200, and length above 1000
+ > bin2 <- winnow(d,slice=1, covmin=200, covmax=200) # Return the subset of contigs in d which have coverage above 200 in sample 1
+ > bin2 <- winnow(d,gc=c(0.2,0.5),len=c(1000,Inf)) # Return the subset of scaffolds in d that have GC between 20-50%, and length above 1000
+ > bin2 <- winnow(d,slice=c(1,2),covmin=c(200,300),covmax=c(Inf,5000)) # Subset of contigs that have coverage above 200 in sample 1, and between 300-5000 in sample 2.
 ```
 
 If you want to get a subset of scaffolds containing marker genes that belong to a particular taxon, use the function `winnowMark()`
@@ -188,19 +205,19 @@ If you want to get a subset of scaffolds containing marker genes that belong to 
 ```R
  > bin3 <- winnowMark(d,param="Class",value="Gammaproteobacteria") # Returns all scaffolds containing a marker gene whose value for "Class" is "Gammaproteobacteria
 ```
-The functions `winnow()` and `winnowMark()` work for both `genomestats` and `diffcovstats` objects
+The functions `winnow()` and `winnowMark()` work for both `gbt` and `gbtbin` objects
 
-### 3d. Adding and subtracting bins
+### 4e. Adding and subtracting bins
 
-You can also perform set operations on bins. The `add` function takes the union, while the `loj` function takes the left outer join. `loj` is non-commutative. I.e. `loj(bin1,bin2)` is not equivalent to `log(bin2,bin1)`. It returns the members of the first object that are not in the second object.
+You can also perform set operations on bins. The `add` function takes the union, while the `lej` function takes the set difference. `lej` is non-commutative. I.e. `lej(bin1,bin2)` is not equivalent to `lej(bin2,bin1)`. It returns the members of the first object that are not in the second object.
 
 ```R
  > mergedbin <- add(bin1, bin2)  # Returns bin with scaffolds present in both bins
- > bin1not2 <- loj(bin1, bin2)   # Returns scaffolds in bin1 that are not in bin2
+ > bin1not2 <- lej(bin1, bin2)   # Returns scaffolds in bin1 that are not in bin2
 ```
-These functions do not work on `genomestats` or `diffcovstats` objects but only on bins (`genomestatsbin` or `diffcovstatsbin` objects).
+These functions work only on bin objects (class `gbtbin`).
 
-### 3e. Fishing for connected contigs using Fastg files (experimental)
+### 4f. Fishing for connected contigs using Fastg files (experimental)
 
 Fastg files are generated by newer versions of the SPAdes assembler, and contain contig connectivity information generated during the assembly process. These can be useful, e.g. to "fish" scaffolds that are from the same genome but which were inadvertently left out of the interactively chosen bin.
 
@@ -216,69 +233,41 @@ Fish out a new bin from an old bin using a Fastg file:
 
 You can compare the two bins by plotting them overlaid:
 ```R
- > plot(d,marker=FALSE) # The underlying GC-coverage plot, with coloring turned off
- > points(bin2,col="blue") # The new bin in blue
- > points(bin1,col="black") # The original bin in black
+ > plot(d,marker=FALSE,slice=1) # The underlying GC-coverage plot, with coloring turned off
+ > points(bin2,col="blue",slice=1) # The new bin in blue
+ > points(bin1,col="black",slice=1) # The original bin in black
 ```
 
-## 4. Explore differential coverage plots
+## 5. Explore differential coverage plots
 
-Differential coverage plots are generated from two separate coverage files (in this example: `assembly.coverage` and `assembly.coverage2`). The tools use analogous object classes `diffcovstats` and `diffcovstatsbin` (for bins defined from differential coverage plots).
+Differential coverage plots are generated from two separate coverage files (in this example: `HPminus.coverage` and `HPplus.coverage`). You've already seen how to import them into a `gbt` object earlier in step 3. 
 
-Import data:
+### 5a. Plotting
+
+To make differential coverage plots instead of GC-coverage plots, simply specify a pair of samples to the `slice=` parameter. For example, to have sample 1 coverage on the x-axis and sample 2 coverage on the y-axis, use the parameter `slice=c(1,2)`. Differential coverage plots are automatically generated with log scales for both axes, but you can override this by specifying your own option to the `log=` parameter.
+
+Like with GC-coverage plots, you can overlay taxonomic marker genes, SSU rRNA markers, and tRNA markers, as well as add legend for the color scheme. In addition, you can choose to color the points by contig GC% instead of marker taxonomy (but you can't do both).
 
 ```R
- > D <- diffcovstats(covstats1="assembly.coverage",covstats2="assembly.coverage2",marker.list="phylotype.results.parsed",ssu.list="assembly.ssu.tab",trna.list="trnascan.results")
+ > plot(d,slice=c(1,2)) # Basic plot. Defaults to coloring by marker genes, if data imported
+ > plot(d,slice=c(1,2),marker=FALSE,gc=FALSE) # Uncolored plot
+ > plot(d,slice=c(1,2),marker=TRUE,legend=TRUE) # Add legend
+ > plot(d,slice=c(1,2),gc=TRUE,marker=FALSE) # Color by GC
+ > plot(d,slice=c(1,2),gc=TRUE,marker=FALSE,legend=TRUE) # Add color scale for GC values
+ > plot(d,slice=c(1,2),ssu=TRUE) # Mark scaffolds containing SSU rRNA genes with crosshairs
+ > plot(d,slice=c(1,2),trna=TRUE) # Mark scaffolds containing tRNA genes with crosses
 ```
 
-Type the object name to see a summary. 
+### 5b. Interactively choosing genomic bins
 
-### 4a. Plotting
+The same `choosebin` function is used to choose a bin from a differential coverage plot, except that the `slice=` parameter must be the same as the one used to draw the plot. Adding and subtracting bins works in the same way, as is fishing with Fastg information. 
 
-Analogous to plotting for genomestats objects, but with option of coloring by markers or by GC value:
-
-```R
- > plot(D) # Basic plot. Defaults to coloring by marker genes, if data imported
- > plot(D,marker=FALSE,gc=FALSE) # Uncolored plot
- > plot(D,marker=TRUE,legend=TRUE) # Add legend
- > plot(D,gc=TRUE,marker=FALSE) # Color by GC
- > plot(D,gc=TRUE,marker=FALSE,legend=TRUE) # Add color scale for GC values
- > plot(D,ssu=TRUE) # Mark scaffolds containing SSU rRNA genes with crosshairs
- > plot(D,trna=TRUE) # Mark scaffolds containing tRNA genes with crosses
-```
-
-### 4b. Interactively choosing genomic bins
-
-Identical syntax to `choosebin` for plain `genomestats` objects described above.
-
-```R
- > Bin1 <- choosebin(D)
-```
-
-### 4c. Adding and subtracting bins
-
-Identical syntax to `add` and `loj` with `genomestatsbin` objects.
-
-```R
- > MergedBin <- add(Bin1, Bin2)  # Union
- > Bin1not2 <- loj (Bin1, Bin2)  # Left outer join
-```
-
-### 4c. Fishing for connected contigs with Fastg data (experimental)
-
-Identical syntax to `fastgFishing` for `genomestatsbin` objects.
-
-```R
- > Bin2 <- fastgFishing(D,Bin1,"/path/to/file.fastg")
-```
-
-## 5. Mapping and reassembly
+## 6. Mapping and reassembly
 
 Once you have your final bin, either the shortlist of scaffolds in that bin was exported with the save parameter when that bin was defined, or you can use the native R function write():
 
 ```R
- > write(as.character(bin1$scaff$ID),file="shortlist.file") # for genomestatsbin object
- > write(as.character(bin2$diffcov$ID),file="shortlist2.file") # for diffcovstatsbin object
+ > write(as.character(bin1$scaff$ID),file="shortlist.file") 
 ```
 
 This gives you a list of scaffold names in your bin. Use a tool like faSomeRecords to retrieve the corresponding Fasta sequence records. Use a mapper like BBmap to get reads that map to those scaffolds, and then reassemble with your favorite assembler.
