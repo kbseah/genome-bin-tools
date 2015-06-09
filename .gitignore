@@ -3,3 +3,4 @@
 *~ 
 # Ignore R package building folder
 R_package/*
+version01/*
