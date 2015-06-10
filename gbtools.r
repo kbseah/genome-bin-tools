@@ -9,6 +9,12 @@
 ##                          - Renamed functions pick.bin.points to pickBinPoints, generate.plot.colors to generatePlotColors, generate.legend.colors to generateLegendColors
 ##                          - Generic functions for choosebin and fastgFishing
 ## Version 2.0 - 2015-06-09 - Complete rewrite. New gbt objects combine properties of former genomestats and diffcovstats objects
+## Version 2.1 - 2015-06-10 - Tidy code for readability,
+##                              add call recording to all functions that create gbtbin objects,
+##                              add support for multiple marker sources,
+##                              add N50 and other scaffold summary stats calculation,
+##                              prettify print and summary commands for gbt and gbtbin,
+##                              make summary.gbtbin show marker table and tRNA table 
 ## Contact: kbseah@mpi-bremen.de
 
 ## Required packages:
@@ -23,82 +29,167 @@
 ##  Table of contigs with SSU genes and taxonomy (e.g. detected by Barrnap, assigned taxonomy by my script)
 ##  tRNA genes detected by tRNAscan-SE, output from tRNAscan-SE can be directly imported
 
+#A <- gbt (covstats=c("HPminus.coverage","HPplus.coverage"),
+#          mark=c("phylotype.result.parsed","phylotype.result.parsed"),
+#          marksource=c("amphora","amphora2"),ssu="HPminus.ssu.tab",trna="HPminus.trna.tab")
+
 ########################################################################################################################
 
-gbt <- function(covstats,mark,ssu,trna) UseMethod ("gbt")
-gbt.default <- function (covstats, mark=NA, ssu=NA, trna=NA) {
+gbt <- function(covstats,mark,marksource,ssu,trna) UseMethod ("gbt")
+
+gbt.default <- function (covstats,  # Vector of filenames for coverage tables 
+                         mark=NA,   # Vector of filenames for marker gene taxonomy tables
+                         marksource=NA,  # Vector of source names for each marker gene table
+                         ssu=NA,    # Filename for SSU annotation table
+                         trna=NA    # Filename for tRNA annotation table
+                         ) {
 ## Create new gbt objects
     if ( class(covstats)!="character" || length(covstats)==0 ) {  # Check that covstats argument is character class
-        cat ("covstats argument must be a list of file names!\n")
+        cat ("gbtools ERROR: covstats argument must be a list of file names!\n")
     }
     else {
-        # Check how many covstats files have been supplied
+        ## Read Coverage tables ##############################################
         if (length(covstats)==1) {
-            scaff <- read.table(file=as.character(covstats),sep="\t",header=T)
-            covs <- data.frame(ID=scaff$ID,scaff$Avg_fold)
+            scaff <- read.table(file=as.character(covstats),
+                                sep="\t",
+                                header=T)
+            covs <- data.frame(ID=scaff$ID,
+                               scaff$Avg_fold)
         }
         else {
-            scaff <- read.table(file=as.character(covstats[1]),sep="\t",header=T)  # Contains all other data associated per contig
-            covs <- data.frame(ID=scaff$ID,scaff$Avg_fold)  # Contains scaffold ID and coverage data
+            scaff <- read.table(file=as.character(covstats[1]),
+                                sep="\t",header=T)  # Contains all other data associated per contig
+            covs <- data.frame(ID=scaff$ID,
+                               scaff$Avg_fold)  # Contains scaffold ID and coverage data
             for (i in 2:length(covstats)) {  # Read the other covstats files
-                scafftemp <- read.table(file=as.character(covstats[i]),sep="\t",header=T)
-                covs <- merge(covs,data.frame(ID=scafftemp$ID,scafftemp$Avg_fold),by="ID")
+                scafftemp <- read.table(file=as.character(covstats[i]),
+                                        sep="\t",header=T)
+                covs <- merge(covs,
+                              data.frame(ID=scafftemp$ID,
+                                         scafftemp$Avg_fold),
+                              by="ID")
             }
         }
-        if ( !is.na(mark) ) {  # Read marker table
-            markTab <- read.table(file=as.character(mark),sep="\t",header=T)
-            numMarks <- dim(markTab)[1]
-        } else {
+        
+        ## Read taxonomic marker table ##########################################
+        if ( !is.na(marksource[1]) ) { # Read list of marker sources
             markTab <- NA
-            numMarks <- NA
+            if ( !is.na(mark[1]) ) {  # Read marker table
+                for (i in 1:length(marksource)) {
+                    markTabTemp <- read.table(file=as.character(mark[i]),
+                                              sep="\t",header=T)
+                    namesvec <- names(markTabTemp)
+                    numMarksTemp <- dim(markTabTemp)[1]
+                    sourcevector <- rep(as.character(marksource[i]),numMarksTemp)
+                    markTabTemp <- cbind(markTabTemp,sourcevector)
+                    names(markTabTemp) <- c(namesvec,"source")
+                    if ( length(markTab)==1 && is.na (markTab)) {
+                        markTab <- markTabTemp
+                    } else {
+                        markTab <- rbind(markTab,markTabTemp)
+                    }
+                }
+            } else {
+                cat ("gbtools WARNING: Marker tables not supplied. marksource parameter ignored \n")
+                marksource <- NA
+                numMarks <- NA
+                markTab <- NA
+            }
         }
-        if ( !is.na(ssu) ) {  # Read SSU marker table
+        
+        ## Read SSU marker table ##############################################
+        if ( !is.na(ssu[1]) ) {  
             ssuTab <- read.table(file=as.character(ssu),sep="\t",header=T)
             numSsu <- dim(ssuTab)[1]
         } else {
+            ssu <- NA
             ssuTab <- NA
             numSsu <- NA
         }
-        if ( !is.na(trna) ) {  # Read tRNA marker table
+        
+        ## Read tRNA marker table #############################################
+        if ( !is.na(trna[1]) ) {  # Read tRNA marker table
             trnaTab <- read.table(file=as.character(trna),sep="\t",skip=3,header=F)
-            names(trnaTab) <- c("scaffold","tRNA_no","tRNA_begin","tRNA_end","tRNA_type","Anticodon","Intron_begin","Intron_end","Cove_score")
+            names(trnaTab) <- c("scaffold",
+                                "tRNA_no",
+                                "tRNA_begin",
+                                "tRNA_end",
+                                "tRNA_type",
+                                "Anticodon",
+                                "Intron_begin",
+                                "Intron_end",
+                                "Cove_score")
             numTrna <- dim(trnaTab)[1]
         } else {
+            trna <- NA
             trnaTab <- NA
             numTrna <- NA
         }
-        summarystats <- data.frame(Total_length=sum(scaff$Length),Num_scaffolds=length(scaff$ID),Num_markers=numMarks,Num_SSU=numSsu,Num_tRNAs=numTrna)
-        result <- list(scaff=scaff,covs=covs,markTab=markTab,ssuTab=ssuTab,trnaTab=trnaTab,summary=summarystats)
-        result$call <- match.call()
+        
+        ## Generate summary statistics #######################################
+        summarystats <- list(Total_length=sum(scaff$Length),
+                             Num_scaffolds=length(scaff$ID),
+                             Scaff_length_max=max(scaff$Length),
+                             Scaff_length_min=min(scaff$Length),
+                             Scaff_length_median=median(scaff$Length),
+                             Scaff_length_N50=getN50(scaff$Length),
+                             Num_markers=table(markTab$source),
+                             Num_SSU=numSsu,
+                             Num_tRNAs=numTrna)
+        
+        ## Package and return result #########################################
+        result <- list(scaff=scaff,
+                       covs=covs,
+                       markTab=markTab,
+                       markSource=marksource,
+                       ssuTab=ssuTab,
+                       trnaTab=trnaTab,
+                       summary=summarystats)
+        result$call <- match.call()  # Record function call that produces this gbt object
         class(result) <- "gbt"
         result
     }    
 }
 
 print.gbt <- function(x) {
-    cat("Object of class gbt\n\n")
-    cat("Call:\t")
+    cat("Object of class gbt\n")
+    cat("\nScaffolds:\n")
+    lengthdf <- data.frame(x$summary$Total_length,
+                           x$summary$Num_scaffolds,
+                           x$summary$Scaff_length_max,
+                           x$summary$Scaff_length_min,
+                           x$summary$Scaff_length_median,
+                           x$summary$Scaff_length_N50)
+    names(lengthdf) <- c("Total", "Scaffolds", "Max", "Min", "Median", "N50")
+    print(lengthdf)
+    cat("\nMarker counts by source:")
+    print(x$summary$Num_markers)
+    cat("\nSSU markers:\n")
+    print(x$summary$Num_SSU)
+    cat("\ntRNA markers:\n")
+    print(x$summary$Num_tRNAs)
+    cat("\nCall:\t")
     print(x$call)
-    cat("\nSummary:\n")
-    print(x$summary)
 }
 
 summary.gbt <- print.gbt  # Identical to "print" behavior
 
-plot.gbt <- function(x, slice=1, cutoff=1000, taxon="Class", assemblyName="",  # Basic inputs
-                     marker=TRUE, gc=FALSE, ssu=FALSE, trna=FALSE, consensus=TRUE, legend=FALSE, textlabel=FALSE,  # Switches for plot features
+plot.gbt <- function(x, slice=1, cutoff=1000, taxon="Class", assemblyName="",      # Basic inputs
+                     marker=TRUE, marksource="", gc=FALSE, ssu=FALSE, trna=FALSE,  # Switches for plot features I
+                     consensus=TRUE, legend=FALSE, textlabel=FALSE,                # Switches for plot features II
                      col="grey", log="default", main="default", xlab="default", ylab="default", ...) {
 ## Plot method for gbt objects
     if (is.na(slice[1]) || !is.numeric(slice)) {
-        cat("Please supply valid value for slice option\n")
+        cat("gbtools ERROR: Please supply valid value for slice option\n")
     } else if (!is.na(slice[1]) && length(slice)==1) {
-    ## GC-Coverage plot
-        # Make a new data.frame for plotting
+    ## GC-Coverage plot ##############################################
+        ## Make a new data.frame for plotting ################################
         X <- merge( data.frame(ID=x$scaff$ID,Ref_GC=x$scaff$Ref_GC,Length=x$scaff$Length),
                    data.frame(ID=x$covs$ID,Avg_fold=x$covs[slice[1]+1]),
                    by="ID")
         names(X) <- c("ID","Ref_GC","Length","Avg_fold")
         
+        ## Set plot parameters #################################################
         if (cutoff > 0) {  # Minimum length cutoff for contigs to be plotted
             X <- subset(X,Length >= cutoff)
         }
@@ -114,38 +205,78 @@ plot.gbt <- function(x, slice=1, cutoff=1000, taxon="Class", assemblyName="",  #
         if (log=="default") {  # Default y-axis on logarithmic scale
             log <- "y"
         }
-        plot(X$Ref_GC,X$Avg_fold,pch=20,cex=sqrt(X$Length)/100,
-             col=col,log=log,main=main, xlab=xlab,ylab=ylab, ...)
+        
+        ## Do the basic plot ###############################################
+        plot(x=X$Ref_GC,
+             y=X$Avg_fold,
+             pch=20,cex=sqrt(X$Length)/100,
+             col=col,log=log,
+             main=main, xlab=xlab,ylab=ylab, ...)
+        
+        ## Add marker taxonomy overlay ########################################
         if (marker && !is.na(x$markTab)) {
-            mark.stats <- generatePlotColors(X,x$markTab,taxon,consensus)
-            points(mark.stats$Ref_GC,mark.stats$Avg_fold,pch=20,cex=sqrt(mark.stats$Length)/100,col=as.character(mark.stats$colors))
+            if (marksource == "") {
+                marksource <- x$markSource[1]     # In default, display markers from the first source
+            } else if (is.character(marksource) && length(marksource)==1) {
+                # catch cases where marksource is not matching entries in x$markSource
+                if (!any(x$markSource==marksource) ) {
+                    cat ("gbtools WARNING: marksource doesn't match any entries.
+                         Defaulting to first...\n")
+                    marksource <- x$markSource[1]
+                }
+            } else if (is.character(marksource) && length(marksource) > 1) {
+                cat ("gbtools WARNING: Only one marker source can be plotted
+                     (marksource parameter). Defaulting to first supplied... \n")
+                marksource <- marksource[1]
+            } else {
+                cat ("gbtools ERROR: Please check marksource argument\n")
+            }
+            markTabTemp <- subset(x$markTab,source==marksource)
+            mark.stats <- generatePlotColors(X,markTabTemp,taxon,consensus)
+            points(x=mark.stats$Ref_GC,
+                   y=mark.stats$Avg_fold,
+                   pch=20,cex=sqrt(mark.stats$Length)/100,
+                   col=as.character(mark.stats$colors))
             if (legend) {
-                colorframe <- generateLegendColors(X,x$markTab,taxon,consensus)
+                colorframe <- generateLegendColors(X,markTabTemp,taxon,consensus)
                 new.colorframe <- subset(colorframe,colors!="grey50")
                 newrow <- c("singletons","grey50")
                 new.colorframe <-rbind (new.colorframe,newrow)
-                legend("topright",legend=new.colorframe$taxon,cex=0.6,fill=as.character(new.colorframe$colors))
+                legend("topright",
+                       legend=new.colorframe$taxon,
+                       cex=0.6,
+                       fill=as.character(new.colorframe$colors))
             }
         }
+        
+        ## Add SSU marker overlay ################################################################
         if (ssu && !is.na(x$ssuTab)) {
             ssu.stats <- mergeScaffMarker(X,x$ssuTab, taxon, consensus=FALSE)
             points(ssu.stats$Ref_GC, ssu.stats$Avg_fold,pch=10,cex=2,col="black")
             if (textlabel==TRUE) {
-                text(ssu.stats$Ref_GC,ssu.stats$Avg_fold,as.character(ssu.stats$taxon),pos=3,offset=0.2,font=2)
+                text(ssu.stats$Ref_GC,ssu.stats$Avg_fold,as.character(ssu.stats$taxon),
+                     pos=3,offset=0.2,font=2)
             }
         }
+        
+        ## Add tRNA marker overlay ###################################################################
         if (trna && !is.na(x$trnaTab)) {
             trna.stats <- merge(X, x$trnaTab, by.x="ID",by.y="scaffold")
-            points(trna.stats$Ref_GC,trna.stats$Avg_fold,pch=4,cex=1,col="black")
+            points(trna.stats$Ref_GC,trna.stats$Avg_fold,
+                   pch=4,cex=1,col="black")
         }
     } else if (!is.na(slice[1]) && length(slice)==2) {
-    ## Differential coverage plot
-        # Make a new data.frame for plotting
-        X <- merge (data.frame (ID=x$scaff$ID,Ref_GC=x$scaff$Ref_GC,Length=x$scaff$Length),
-                    data.frame (ID=x$covs$ID,Avg_fold_1=x$covs[slice[1]+1],Avg_fold_2=x$covs[slice[2]+1]),
+    ## Differential coverage plot ############################################################
+        ## Make a new data.frame for plotting ##########################################################
+        X <- merge (data.frame (ID=x$scaff$ID,
+                                Ref_GC=x$scaff$Ref_GC,
+                                Length=x$scaff$Length),
+                    data.frame (ID=x$covs$ID,
+                                Avg_fold_1=x$covs[slice[1]+1],
+                                Avg_fold_2=x$covs[slice[2]+1]),
                     by="ID")
         names(X) <- c("ID","Ref_GC","Length","Avg_fold_1","Avg_fold_2")
-        # Length cutoff
+        ## Plot parameters #########################################################
         if (cutoff > 0 ) {
             X <- subset(X,Length>=cutoff)
         }
@@ -161,48 +292,90 @@ plot.gbt <- function(x, slice=1, cutoff=1000, taxon="Class", assemblyName="",  #
         if (log=="default") {  # Default both x- and y-axis on logarithmic scale
             log <- "xy"
         }
-        gbr <- colorRampPalette(c("green","blue","orange","red"))  # Define GC palette colors; from Albertsen script
-        if (gc && marker & !is.na(x$markTab)) {  # Catch invalid option combination
+        ## Define GC palette colors (from Albertsen scripts) #######################
+        gbr <- colorRampPalette(c("green","blue","orange","red"))
+        ## Catch invalid coloring option combination ###############################
+        if (gc && marker & !is.na(x$markTab)) {  
             cat("plase choose to plot only with GC or marker coloring, but not both!\n")
         }
-        else if (gc && !marker) {  # Color plot by GC% values
+        ## Color plot by GC% values ################################################
+        else if (gc && !marker) {  
             palette (adjustcolor(gbr(70)))
-            plot(X$Avg_fold_1,X$Avg_fold_2,pch=20,cex=sqrt(X$Length)/100,col=X$Ref_GC*100,
+            plot(x=X$Avg_fold_1,
+                 y=X$Avg_fold_2,
+                 pch=20,cex=sqrt(X$Length)/100,col=X$Ref_GC*100,
                  main=main,log=log,xlab=xlab,ylab=ylab,...)
             if (legend) {
                 legendcolors <- c("20","30","40","50","60","70","80")
-                legend ("topright",legend=as.character(legendcolors),fill=as.numeric(legendcolors))
+                legend ("topright",
+                        legend=as.character(legendcolors),
+                        fill=as.numeric(legendcolors))
             }
         }
-        else if (!gc && !is.na(x$markTab) && marker) {  # Color plot by markers
-            plot (X$Avg_fold_1,X$Avg_fold_2,pch=20,cex=sqrt(X$Length)/100,
+        ## Color plot by Marker taxonomy ############################################
+        else if (!gc && !is.na(x$markTab) && marker) {  
+            ## Identify which marker source to plot
+            if (marksource == "") {
+                marksource <- x$markSource[1]     # In default, display markers from the first source
+            } else if (is.character(marksource) && length(marksource)==1) {
+                # catch cases where marksource is not matching entries in x$markSource
+                if (!any(x$markSource==marksource) ) {
+                    cat ("gbtools WARNING: marksource doesn't match any entries.
+                         Defaulting to first...\n")
+                    marksource <- x$markSource[1]
+                }
+            } else {
+                cat ("gbtools ERROR: Only one marker source can be plotted
+                     (marksource parameter)\n")
+            }
+            markTabTemp <- subset(x$markTab,source==marksource)
+            ## Produce the base plot
+            plot (x=X$Avg_fold_1,
+                  y=X$Avg_fold_2,
+                  pch=20,cex=sqrt(X$Length)/100,
                   main=main,col=col,log=log,ylab=ylab,xlab=xlab, ...)
-            mark.stats <- generatePlotColors(X,x$markTab,taxon,consensus)
-            points(mark.stats$Avg_fold_1,mark.stats$Avg_fold_2,pch=20,cex=sqrt(mark.stats$Length)/100,
+            ## Generate plot colors for markers and overlay with markers
+            mark.stats <- generatePlotColors(X,markTabTemp,taxon,consensus)
+            points(x=mark.stats$Avg_fold_1,
+                   y=mark.stats$Avg_fold_2,
+                   pch=20,cex=sqrt(mark.stats$Length)/100,
                    col=as.character(mark.stats$colors))
             if (legend) {
-                colorframe <- generateLegendColors(X,x$markTab,taxon,consensus)
+                colorframe <- generateLegendColors(X,markTabTemp,taxon,consensus)
                 new.colorframe <- subset(colorframe,colors!="grey50")
                 newrow <- c("singletons","grey50")
                 new.colorframe <- rbind (new.colorframe,newrow)
-                legend("topright",legend=new.colorframe$taxon,cex=0.6,fill=as.character(new.colorframe$colors))
+                legend("topright",
+                       legend=new.colorframe$taxon,
+                       cex=0.6,
+                       fill=as.character(new.colorframe$colors))
             }
         }
-        else if (!gc && !marker) {  # Do not color plot
+        ## Do not color plot ###########################################################################
+        else if (!gc && !marker) {  
             plot (X$Avg_fold_1,X$Avg_fold_2,pch=20,cex=sqrt(X$Length)/100,
                   main=main,col=col,log=log,xlab=xlab,ylab=ylab, ...)
         }
         if (!(gc&&marker)) {
-            if (ssu && !is.na(x$ssuTab)) {  # Add SSU markers to plot
+            
+            ## Add SSU markers to plot ############################################################################
+            if (ssu && !is.na(x$ssuTab)) { 
                 ssu.stats <-mergeScaffMarker (X,x$ssuTab,taxon,consensus=FALSE)
-                points(ssu.stats$Avg_fold_1,ssu.stats$Avg_fold_2,pch=10,cex=2,col="black")
-                if (textlabel==TRUE) {
-                    text(ssu.stats$Avg_fold_1,ssu.stats$Avg_fold_2,as.character(ssu.stats$taxon),pos=3,cffset=0.2,font=2)
+                points(x=ssu.stats$Avg_fold_1,
+                       y=ssu.stats$Avg_fold_2,
+                       pch=10,cex=2,col="black")
+                if (textlabel==TRUE) {  # Add text labels to SSU markers
+                    text(x=ssu.stats$Avg_fold_1,
+                         y=ssu.stats$Avg_fold_2,
+                         as.character(ssu.stats$taxon),pos=3,offset=0.2,font=2)
                 }
             }
-            if (trna && !is.na(x$trnaTab)) {  # Add tRNA markers to plot
+            ## Add tRNA markers to plot ##########################################################################
+            if (trna && !is.na(x$trnaTab)) {  
                 trna.stats <- merge(X,x$trnaTab,by.x="ID",by.y="scaffold")
-                points(trna.stats$Avg_fold_1,trna.stats$Avg_fold_2,pch=4,cex=1,col="black")
+                points(x=trna.stats$Avg_fold_1,
+                       y=trna.stats$Avg_fold_2,
+                       pch=4,cex=1,col="black")
             }
         }
     }
@@ -215,35 +388,56 @@ choosebin.gbt <- function(x,slice,taxon="Class",num.points=6,
     require(sp)
 ## Wrapper for picking bin interactively from GC-cov or diff-cov plot
     if (!is.numeric(slice) || length(slice) > 2) {
-        cat ("Please specify the library(-ies) used to make the plot in focus\n")
+        cat ("gbtools ERROR: Please specify the library(-ies) used to make the plot in focus\n")
     } else {
-        bin <- pickBinPoints(num.points=num.points,draw.polygon=draw.polygon)
+        bin <- pickBinPoints(num.points=num.points,
+                             draw.polygon=draw.polygon)
         if (length(slice)==1) {  # Pick bin from GC-coverage plot
-            X <- merge(data.frame(ID=x$scaff$ID,Ref_GC=x$scaff$Ref_GC),
-                       data.frame(ID=x$covs$ID,Avg_fold=x$covs[slice[1]+1]),
+            X <- merge(data.frame(ID=x$scaff$ID,
+                                  Ref_GC=x$scaff$Ref_GC),
+                       data.frame(ID=x$covs$ID,
+                                  Avg_fold=x$covs[slice[1]+1]),
                        by="ID")
             names(X) <- c("ID","Ref_GC","Avg_fold")
-            inpolygon <- sp::point.in.polygon(X$Ref_GC,X$Avg_fold,bin$x,bin$y)
+            inpolygon <- sp::point.in.polygon(X$Ref_GC,
+                                              X$Avg_fold,
+                                              bin$x,
+                                              bin$y)
         }
         else if (length(slice)==2) {  # Pick bin from differential coverage plot
-            X <- merge(data.frame(ID=x$scaff$ID,Ref_GC=x$scaff$Ref_GC),
-               data.frame(ID=x$covs$ID,Avg_fold_1=x$covs[slice[1]+1],Avg_fold_2=x$covs[slice[2]+1]),
-               by="ID")
+            X <- merge(data.frame(ID=x$scaff$ID,
+                                  Ref_GC=x$scaff$Ref_GC),
+                       data.frame(ID=x$covs$ID,
+                                  Avg_fold_1=x$covs[slice[1]+1],
+                                  Avg_fold_2=x$covs[slice[2]+1]),
+                       by="ID")
             names(X) <- c("ID","Ref_GC","Avg_fold_1","Avg_fold_2")
-            inpolygon <- sp::point.in.polygon(X$Avg_fold_1,X$Avg_fold_2,bin$x,bin$y)
+            inpolygon <- sp::point.in.polygon(X$Avg_fold_1,
+                                              X$Avg_fold_2,
+                                              bin$x,
+                                              bin$y)
         }
         X.subset <- X[which(inpolygon==1),]
         X.shortlist <- as.character(X.subset$ID)
-        result <- gbtbin(shortlist=X.shortlist,x=x,slice=slice,taxon=taxon,points=bin,save=save,file=file)
+        result <- gbtbin(shortlist=X.shortlist,
+                         x=x,
+                         slice=slice,
+                         taxon=taxon,
+                         points=bin,
+                         save=save,
+                         file=file)
+        result$call <- match.call()  # Record the choosebin() call used to produce this bin
         return(result)
     }
 }
 
 gbtbin <- function(shortlist,x,slice,taxon,points,save,file) UseMethod("gbtbin")
+
 gbtbin.default <- function(shortlist,x,slice,taxon,points=NA,save=FALSE,file="interactive_bin.list") {
     scaff.subset <- subset(x$scaff, ID%in% shortlist)
     covs.subset <- subset(x$covs, ID%in%shortlist)
     markTab.subset <- NA
+    marksource <- x$markSource
     ssuTab.subset <- NA
     trnaTab.subset <- NA
     # Summary statistics initialize
@@ -253,173 +447,319 @@ gbtbin.default <- function(shortlist,x,slice,taxon,points=NA,save=FALSE,file="in
     bin.uniqtRNAs <- NA
     bin.numSSUs <- NA
     bin.singlemarkers <- NA
-    marker.tab <- NA
+    marker.tab <- list()
     tRNAs.tab <- NA
-    ###
-    if (!is.na (x$markTab)) {
+    ## Take subset of markTab ##############################
+    if (is.data.frame(x$markTab)) {
         markTab.subset <- subset(x$markTab,scaffold%in% shortlist)
-        bin.nummarkers <- dim(markTab.subset)[1]
-        marker.tab <- table(markTab.subset$gene)
-        bin.uniqmarkers <- length(which(marker.tab > 0))
-        bin.singlemarkers <- length(which(marker.tab ==1))
+        for (j in 1:length(marksource)) {
+            markTab.subsubset <- subset(markTab.subset,source==marksource[j])
+            bin.nummarkers[j] <- dim(markTab.subsubset)[1]
+            marker.tab[[j]] <- table(markTab.subsubset$gene)
+            bin.uniqmarkers[j] <- length(which(marker.tab[[j]] > 0))
+            bin.singlemarkers[j] <- length(which(marker.tab[[j]] ==1))
+        }
     }
-    if (!is.na (x$ssuTab)) {
+    ## Take subset of ssuTab ##############################
+    if (is.data.frame(x$ssuTab)) {
         ssuTab.subset <- subset(x$ssuTab,scaffold%in%shortlist)
         bin.numSSUs <- dim(ssuTab.subset)[1]
     }
-    if (!is.na (x$trnaTab)) {
+    ## Take subset of trnaTab ##############################
+    if (is.data.frame(x$trnaTab)) {
         trnaTab.subset <- subset(x$trnaTab,scaffold%in% shortlist)
         bin.numtRNAs <- dim(trnaTab.subset)[1]
         tRNAs.tab <- table (trnaTab.subset$tRNA_type)
         bin.uniqtRNAs <- length(which(tRNAs.tab > 0))
     }
+    ## Summary statistics ######################################
     bin.length <- sum(scaff.subset$Length)
     bin.numscaffolds <- dim(scaff.subset)[1]
-    bin.summary <- data.frame(Total_length=bin.length,Num_scaffolds=bin.numscaffolds,Num_markers=bin.nummarkers,
-                              Num_unique_markers=bin.uniqmarkers,Num_singlecopy_markers=bin.singlemarkers,
-                              Num_SSUs=bin.numSSUs,Num_tRNAs=bin.numtRNAs,Num_tRNAs_types=bin.uniqtRNAs)
+    bin.summary <- list(Total_length=bin.length,
+                        Num_scaffolds=bin.numscaffolds,
+                        Scaff_length_max=max(scaff.subset$Length),
+                        Scaff_length_min=min(scaff.subset$Length),
+                        Scaff_length_median=median(scaff.subset$Length),
+                        Scaff_length_N50=getN50(scaff.subset$Length),
+                        Marker_sources=marksource,
+                        Num_markers=bin.nummarkers,
+                        Num_unique_markers=bin.uniqmarkers,
+                        Num_singlecopy_markers=bin.singlemarkers,
+                        Num_SSUs=bin.numSSUs,
+                        Num_tRNAs=bin.numtRNAs,
+                        Num_tRNAs_types=bin.uniqtRNAs)
+    
+    ## Write to file, if save option is used ######################
     if (save) {
         write(as.vector(scaff.subset$ID),file=file)
     }
-    result <- list(scaff=scaff.subset, covs=covs.subset,
-                   markTab=markTab.subset,ssuTab=ssuTab.subset,trnaTab=trnaTab.subset,
-                   summary=bin.summary,marker.table=marker.tab,tRNA.table=tRNAs.tab,points=points,slice=slice)
+    
+    ## Package and return result ######################################
+    result <- list(scaff=scaff.subset,
+                   covs=covs.subset,
+                   markTab=markTab.subset,
+                   markSource=marksource,
+                   ssuTab=ssuTab.subset,
+                   trnaTab=trnaTab.subset,
+                   summary=bin.summary,
+                   marker.table=marker.tab,
+                   tRNA.table=tRNAs.tab,
+                   points=points,
+                   slice=slice)
     class(result) <- "gbtbin"
     return(result)
 }
 
-print.gbtbin <- function(x) {
+print.gbtbin <- function(x) {  ## TODO: Prettify this
     cat("Object of class gbtbin\n")
-    cat ("\nSummary:\n")
-    print(x$summary)
+    cat ("\nScaffolds:\n")
+    lengthdf <- data.frame(x$summary$Total_length,
+                           x$summary$Num_scaffolds,
+                           x$summary$Scaff_length_max,
+                           x$summary$Scaff_length_min,
+                           x$summary$Scaff_length_median,
+                           x$summary$Scaff_length_N50)
+    names(lengthdf) <- c("Total", "Scaffolds", "Max", "Min", "Median", "N50")
+    print(lengthdf)
+    cat("\nMarkers:\n")
+    markerdf <- data.frame(x$summary$Marker_sources,
+                           x$summary$Num_markers,
+                           x$summary$Num_unique_markers,
+                           x$summary$Num_singlecopy_markers)
+    names(markerdf) <- c("Source","Total","Unique","Singlecopy")
+    print(markerdf)
+    cat("\nSSU markers:\n")
+    print(x$summary$Num_SSUs)
+    cat("\ntRNA_markers:\n")
+    print(x$summary$Num_tRNAs)
+    cat("\nCall:\t")
+    print(x$call)
 }
 
-summary.gbtbin <- print.gbtbin  # Identical to print method
+summary.gbtbin <- function (x) { ## TODO: Prettify this
+    print(x)  # Print the standard summary
+    ## Show the marker tables
+    cat ("\nPolygon for choosebin (if applicable):\n")
+    print(x$points)
+    cat ("\nTable(s) of marker genes\n")
+    print(x$marker.table)
+    cat ("\nTable of tRNA genes\n")
+    print(x$tRNA.table)
+}
 
 points.gbtbin <- function(x,col="black", slice="default", cutoff=0, pch=20, ...) {
-    if (slice == "default") {  # Defaults to the same slice used to choose the bin
+    ## Defaults to the same slice used to choose the bin ###########################
+    if (slice == "default") { 
         slice <- x$slice
     }
-    if (is.na(slice) || !is.numeric(slice) || length(slice) > 2) { # Catch invalid slice values
-        cat ("Please specify valid value for slice option for this bin\n")
-    } else if (is.numeric(slice) && length(slice)==1) {
-        X <- merge(data.frame(ID=x$scaff$ID,Ref_GC=x$scaff$Ref_GC,Length=x$scaff$Length),
-                   data.frame(ID=x$covs$ID,Avg_fold=x$covs[slice[1]+1]),
+    ## Catch invalid slice values ##################################################
+    if (is.na(slice) || !is.numeric(slice) || length(slice) > 2) { 
+        cat ("gbtools ERROR: Please specify valid value for slice option for this bin\n")
+    }
+    ## Add points to GC-coverage plot ##############################################
+    else if (is.numeric(slice) && length(slice)==1) {
+        X <- merge(data.frame(ID=x$scaff$ID,
+                              Ref_GC=x$scaff$Ref_GC,
+                              Length=x$scaff$Length),
+                   data.frame(ID=x$covs$ID,
+                              Avg_fold=x$covs[slice[1]+1]),
                    by="ID")
         names(X) <- c("ID","Ref_GC","Length","Avg_fold")
         if (cutoff > 0) {
             X <- subset(X, Length >= cutoff)
         }
-        points(X$Ref_GC,X$Avg_fold,pch=pch,cex=sqrt(as.numeric(X$Length))/100,col=col, ...)
-    } else if (is.numeric(slice) && length(slice)==2) {
-        X <- merge(data.frame(ID=x$scaff$ID,Ref_GC=x$scaff$Ref_GC,Length=x$scaff$Length),
-                   data.frame(ID=x$covs$ID,Avg_fold_1=x$covs[slice[1]+1],Avg_fold_2=x$covs[slice[2]+1]),
+        points(x=X$Ref_GC,
+               y=X$Avg_fold,
+               pch=pch,
+               cex=sqrt(as.numeric(X$Length))/100,
+               col=col, ...)
+    }
+    ## Add points to differential coverage plot #####################################
+    else if (is.numeric(slice) && length(slice)==2) {
+        X <- merge(data.frame(ID=x$scaff$ID,
+                              Ref_GC=x$scaff$Ref_GC,
+                              Length=x$scaff$Length),
+                   data.frame(ID=x$covs$ID,
+                              Avg_fold_1=x$covs[slice[1]+1],
+                              Avg_fold_2=x$covs[slice[2]+1]),
                    by="ID")
         names(X) <- c("ID","Ref_GC","Length","Avg_fold_1","Avg_fold_2")
         if (cutoff > 0 ) {
             X <- subset(X,Length >= cutoff)
         }
-        points(X$Avg_fold_1,X$Avg_fold_2,pch=pch,cex=sqrt(as.numeric(X$Length))/100,col=col, ...)
-    } else { cat ("Please specify valid value for slice option for this bin\n")}
+        points(x=X$Avg_fold_1,
+               y=X$Avg_fold_2,
+               pch=pch,
+               cex=sqrt(as.numeric(X$Length))/100,
+               col=col, ...)
+    }
+    ## Throw error message for invalid slice options ################################
+    else { cat ("gbtools ERROR: Please specify valid value for slice option for this bin\n")}
 }
 
 plot.gbtbin <- function(x, slice="default", ...) {
-    if (slice == "default") {  # Defaults to the same slice used to choose the bin
+    ## Defaults to same slice used to choose the bin ################################
+    if (slice == "default") { 
         slice <- x$slice
     }
-    if (is.na(x$slice) || !is.numeric(x$slice) || length(x$slice) > 2) { # Catch invalid slice values
-        cat ("Please specify valid value for slice option for this bin\n")
-    } else {
-        plot.gbt (x=x, slice=slice, ...)  # Inherits same plot method as gbt class, for simplicity
+    ## Catch invalid slice values ###################################################
+    if (is.na(x$slice) || !is.numeric(x$slice) || length(x$slice) > 2) { 
+        cat ("gbtools ERROR: Please specify valid value for slice option for this bin\n")
+    }
+    ## Else inherit same plot method as gbt class, for simplicty's sake #############
+    else {
+        plot.gbt (x=x, slice=slice, ...) 
     }
 }
 
-
 add <- function(x1, x2) UseMethod("add")
+
 add.gbtbin <- function(x1,x2) {
 ## Merge two bins; i.e. take their union
     result <- setOperation(x1=x1,x2=x2,shortlist="all")
+    result$call <- match.call()  # Record function call that returned this merged bin
     return(result)
 }
 
 lej <- function(x1, x2) UseMethod ("lej")
+
 lej.gbtbin <- function(x1,x2) {
 ## Take difference between two bins - non commutative! i.e. left exclusive join
     shortlist <- x1$scaff$ID[which(!x1$scaff$ID %in% x2$scaff$ID)]
-    result <- setOperation.gbtbin(x1=x1,x2=x2,shortlist=shortlist)
+    result <- setOperation.gbtbin(x1=x1,
+                                  x2=x2,
+                                  shortlist=shortlist)
+    result$call <- match.call()  # Record function call that returned this merged bin
     return(result)
 }
 
 setOperation <- function(x1, x2, shortlist) UseMethod("setOperation")
+
 setOperation.gbtbin <- function(x1,x2,shortlist) {
 ## Generic operation for merging and subsetting two gbtbin objects
+    ## Merge the two scaff tables ##################################################
     scaff.add <- unique (rbind(x1$scaff,x2$scaff))
+    ## Catch special value for shortlist ###########################################
     if (shortlist[1] == "all") {
         shortlist <- as.character(scaff.add$ID)
     }
+    ## Subset scaff and coverage tables ############################################
     scaff.add <- subset (scaff.add, ID %in% shortlist)
     covs.add <- unique (rbind(x1$covs,x2$covs))
     covs.add <- subset(covs.add, ID %in% shortlist)
+    ## Initialize marker, ssu, and tRNA tables #####################################
     markTab.add <- NA
     ssuTab.add <- NA
     trnaTab.add <- NA
-    # Summary stats
-    bin.nummarkers <- NA    # Initialize value of bin.nummarkers for summary, in case the marker.list is not supplied
+    marksource <- x1$markSource  # markSource should be identical in x1 and x2 -- TODO: Implement a check?
+    ## Initialize variables for summary stats ######################################
+    bin.nummarkers <- NA    # In case the marker.list is not supplied
     bin.uniqmarkers <- NA
     bin.numtRNAs <- NA      # Likewise for number of tRNAs
     bin.uniqtRNAs <- NA
     bin.numSSUs <- NA
     bin.singlemarkers <- NA
-    marker.tab <- NA
+    marker.tab <- list()  # Make empty list object (NA will throw error later)
     tRNAs.tab <- NA
-    ##
+    ## Combine marker tables #######################################################
     if (!is.na(x1$markTab) || !is.na(x2$markTab)) {
         markTab.add <- unique (rbind(x1$markTab,x2$markTab))
-        bin.nummarkers <- dim(markTab.add)[1]  # Total number of markers in the bin
-        marker.tab <- table(markTab.add$gene)  # Table of counts of each marker that is present (zeroes not shown)
-        bin.uniqmarkers <- length(which(marker.tab > 0))  # Count total number of unique markers
-        bin.singlemarkers <- length(which(marker.tab == 1))
+        for (j in 1:length(marksource)) {
+            markTab.subsubset <- subset(markTab.add,source==marksource[j])
+            bin.nummarkers[j] <- dim(markTab.subsubset)[1]
+            marker.tab[[j]] <- table(markTab.subsubset$gene)
+            bin.uniqmarkers[j] <- length(which(marker.tab[[j]] > 0))
+            bin.singlemarkers[j] <- length(which(marker.tab[[j]] ==1))
+        }
     }
+    ## Combine SSU Tables ##########################################################
     if (!is.na(x1$ssuTab) || !is.na(x2$ssuTab)) {
         ssuTab.add <- unique (rbind(x1$ssuTab,x2$ssuTab))
         bin.numSSUs <- dim(ssuTab.add)[1]
     }
+    ## Combine trna Tables #########################################################
     if (!is.na(x1$trnaTab) || !is.na(x2$trnaTab)) {
         trnaTab.add <- unique (rbind(x1$trnaTab,x2$trnaTab))
         bin.numtRNAs <- dim(trnaTab.add)[1]
         tRNAs.tab <- table(trnaTab.add$tRNA_type)
         bin.uniqtRNAs <- length(which(tRNAs.tab > 0))
     }
+    ## Summary statistics ##########################################################
     bin.length <- sum(scaff.add$Length)
     bin.numscaffolds <- dim(scaff.add)[1]
-    bin.summary <- data.frame(Total_length=bin.length,Num_scaffolds=bin.numscaffolds,
-                              Num_markers=bin.nummarkers,Num_unique_markers=bin.uniqmarkers,Num_singlecopy_markers=bin.singlemarkers,
-                              Num_SSUs=bin.numSSUs,Num_tRNAs=bin.numtRNAs,Num_tRNAs_types=bin.uniqtRNAs)
-    result <- list (scaff=scaff.add,covs=covs.add,markTab=markTab.add,ssuTab=ssuTab.add,trnaTab=trnaTab.add,
-                    summary=bin.summary,marker.table=marker.tab,tRNA.table=tRNAs.tab,points=NA,slice=NA)
+    bin.summary <- list (Total_length=bin.length,
+                         Num_scaffolds=bin.numscaffolds,
+                         Scaff_length_max=max(scaff.add$Length),
+                         Scaff_length_min=min(scaff.add$Length),
+                         Scaff_length_median=median(scaff.add$Length),
+                         Scaff_length_N50=getN50(scaff.add$Length),
+                         Marker_sources=marksource,
+                         Num_markers=bin.nummarkers,
+                         Num_unique_markers=bin.uniqmarkers,
+                         Num_singlecopy_markers=bin.singlemarkers,
+                         Num_SSUs=bin.numSSUs,
+                         Num_tRNAs=bin.numtRNAs,
+                         Num_tRNAs_types=bin.uniqtRNAs)
+    ## Package and return results ##################################################
+    result <- list (scaff=scaff.add,
+                    covs=covs.add,
+                    markTab=markTab.add,
+                    markSource=marksource,
+                    ssuTab=ssuTab.add,
+                    trnaTab=trnaTab.add,
+                    summary=bin.summary,
+                    marker.table=marker.tab,
+                    tRNA.table=tRNAs.tab,
+                    points=NA,
+                    slice=NA)
     class(result) <- "gbtbin"
     return(result)
 }
 
 winnow <- function (x, gc, len, covmin, covmax, slice, save, file) UseMethod ("winnow")
 
-winnow.gbt <- function (x, gc=c(0,1),len=c(0,Inf),covmin=NA,covmax=NA,slice=NA,save=FALSE,file="bin_scaffolds.list") {
+winnow.gbt <- function (x,
+                        gc=c(0,1),
+                        len=c(0,Inf),
+                        covmin=NA,
+                        covmax=NA,
+                        slice=NA,
+                        save=FALSE,
+                        file="bin_scaffolds.list") {
 ## "Winnow" a gbt object by GC%, Length, and/or coverage cutoffs
-    scafflist <- as.character(x$scaff$ID[which(x$scaff$Ref_GC > gc[1] & x$scaff$Ref_GC < gc[2]
-                                               & x$scaff$Length > len[1] & x$scaff$Length < len[2])])
-    if (!is.na(slice) && is.numeric(slice)) {  # If coverage cutoffs are given, along with relevant slices
-        if (length(covmin)==length(covmax) && length(covmin) == length(slice)) {  # Check that values match
-            covslist <- as.character(x$covs$ID[which(x$covs[slice[1]+1] > covmin[1] & x$covs[slice[1]+1] < covmax[1])])
+    ## Shortlist scaffolds that match GC and Length criteria #######################
+    scafflist <- as.character(x$scaff$ID[which(x$scaff$Ref_GC > gc[1]
+                                               & x$scaff$Ref_GC < gc[2]
+                                               & x$scaff$Length > len[1]
+                                               & x$scaff$Length < len[2])])
+    ## Check if coverage cutoffs given, with relevant slices #######################
+    if ( is.numeric(slice) ) {
+        if (length(covmin)==length(covmax)
+            && length(covmin) == length(slice)) {  # Check that values match
+            covslist <- as.character(x$covs$ID[which(x$covs[slice[1]+1] > covmin[1]
+                                                     & x$covs[slice[1]+1] < covmax[1])])
             if (length(slice)> 1) {
                 for (i in 2:length(slice)) {
-                    covslist2 <- as.character(x$covs$ID[which(x$covs[slice[i]+1]> covmin[i] & x$covs[slice[i]+1]< covmax[i])])
+                    covslist2 <- as.character(x$covs$ID[which(x$covs[slice[i]+1]> covmin[i]
+                                                              & x$covs[slice[i]+1]< covmax[i])])
                     covslist <- intersect(covslist,covslist2)
                 }
             }
-            scafflist <- intersect(scafflist, covslist)
-        } else { cat("Lengths of covmin, covmax, and slice parameters do not match\n") }
+            scafflist <- intersect(scafflist, covslist)  # Update scaffolds shortlist
+        } else {
+            cat("gbtools ERROR: Lengths of covmin, covmax, and slice parameters
+                do not match\n")
+        }
     }
-    bin <- gbtbin(shortlist=scafflist,x=x,slice=NA,taxon=taxon,points=NA,save=save,file=file)
+    ## Package and return result ###################################################
+    bin <- gbtbin(shortlist=scafflist,
+                  x=x,
+                  slice=NA,
+                  taxon=taxon,
+                  points=NA,
+                  save=save,
+                  file=file)
+    bin$call <- match.call()  # Record function call that produced this winnow bin
     return(bin)
 }
 
@@ -427,26 +767,53 @@ winnow.gbtbin <- winnow.gbt  # Inherit behavior of gbt method
 
 winnowMark <- function(x,param,value,save,file) UseMethod("winnowMark")
 
-winnowMark.gbt <- function(x,param="Class",value="Gammaproteobacteria",save=FALSE,file="bin_scaffolds.list") {
+winnowMark.gbt <- function(x,
+                           param="Class",
+                           value="Gammaproteobacteria",
+                           save=FALSE,
+                           file="bin_scaffolds.list") {
 ## Winnow a gbt object by its marker table values
     scafflist <- as.character(x$markTab$scaffold[which(x$markTab[,which(names(x$markTab)==param)]==value)])
-    bin <- gbtbin (shortlist=scafflist, x=x, points=NA, slice=NA, save=save,file=file)
+    bin <- gbtbin (shortlist=scafflist,
+                   x=x,
+                   points=NA,
+                   slice=NA,
+                   save=save,
+                   file=file)
+    bin$call <- match.call()  # Record function call that produced this winnow bin
     return(bin)
 }
 
 winnowMark.gbtbin <- winnowMark.gbt
 
 fastgFishing <- function(x, bin, fastg.file, ... ) UseMethod ("fastgFishing")  # Defines generic for fastgFishing function
-fastgFishing.gbtbin <- function(x,bin,fastg.file,taxon="Class",save=FALSE,file="fished_bin.list") {
+
+fastgFishing.gbtbin <- function(x,
+                                bin,
+                                fastg.file,
+                                taxon="Class",
+                                save=FALSE,
+                                file="fished_bin.list") {
     command <- "perl"
 ## REPLACE THIS PATH WITH YOUR OWN PATH !! #########################################
     script.path <- "/home/kbseah/tools/my_scripts/genome-bin-tools/fastg_parser.pl" 
 ####################################################################################
-    command.params <- paste(script.path,"-i",fastg.file,"-o /tmp/tmp.fishing_output -b - -r")                   # By default throws away fastg_parser.pl output to /tmp/
-    fished.contigs.list <- system2(command,command.params,input=as.character(bin$scaff$ID),stderr=NULL,stdout=TRUE)
+    command.params <- paste(script.path,"-i",fastg.file,"-o /tmp/tmp.fishing_output -b - -r")
+        # By default throws away fastg_parser.pl output to /tmp/
+    fished.contigs.list <- system2(command,
+                                   command.params,
+                                   input=as.character(bin$scaff$ID),
+                                   stderr=NULL,
+                                   stdout=TRUE)
     newbin <- gbtbin(shortlist=fished.contigs.list,x=x,slice=NA,taxon=taxon,save=save,file=file)
     return(newbin)
 }
+
+
+
+
+
+
 
 ## INTERNAL FUNCTIONS #####################################################
 
@@ -455,61 +822,136 @@ mergeScaffMarker <- function(scaffold.stats,marker.list,taxon,consensus=TRUE) {
 ## and table of marker statistics parsed by parse_phylotype_result.pl
     require(plyr)
     marker.list[,"taxon"] <- marker.list[,which(names(marker.list)==taxon)]
-    marker.stats <- merge(scaffold.stats,marker.list,by.x="ID",by.y="scaffold")
-    if (consensus) {    # For scaffolds with multiple marker genes, take majority consensus of marker taxon assignment
+    marker.stats <- merge(scaffold.stats,
+                          marker.list,
+                          by.x="ID",
+                          by.y="scaffold")
+    ## For scaffolds with multiple marker genes, take majority consensus of marker #
+    ## taxon assignment ############################################################
+    if (consensus) {    
         #scaffs.with.multi <- as.vector(names(table(marker.stats$ID)[which(table(marker.stats$ID)>1)]))
-        #consensus.list <- ddply(marker.list, .(scaffold), function(x) levels(x$taxon)[which.max(tabulate(x$taxon))])
-        consensus.list <- plyr::ddply(marker.list, .(scaffold), summarize, taxon=levels(taxon)[which.max(tabulate(taxon))])
-        marker.stats <- merge(scaffold.stats,consensus.list,by.x="ID",by.y="scaffold")
+        #consensus.list <- ddply(marker.list,
+        #                       .(scaffold),
+        #                       function(x) levels(x$taxon)[which.max(tabulate(x$taxon))])
+        consensus.list <- plyr::ddply(marker.list,
+                                      .(scaffold),
+                                      summarize,
+                                      taxon=levels(taxon)[which.max(tabulate(taxon))])
+        marker.stats <- merge(scaffold.stats,
+                              consensus.list,
+                              by.x="ID",
+                              by.y="scaffold")
     }
     return(marker.stats)
 }
 
 generatePlotColors <- function(scaffold.stats, marker.list, taxon, consensus) {           # This took a very long time to get it right
 ## Generates colors for marker gene phylotypes in plot
-    marker.stats <- mergeScaffMarker(scaffold.stats,marker.list,taxon, consensus)          # Some table merging to have points to plot for the markers
+    ## Merge tables to have points to plot for the markers #########################
+    marker.stats <- mergeScaffMarker(scaffold.stats,
+                                     marker.list,
+                                     taxon,
+                                     consensus) 
     marker.list[,"taxon"] <- marker.list[,which(names(marker.list)==taxon)]
-    singleton.taxa <- names(table(marker.list$taxon)[which(table(marker.list$taxon)==1)])       # Count how many taxa are only supported by one marker gene
-    top.taxon <- names(table(marker.list$taxon)[which.max(table(marker.list$taxon))])           # Which taxon has the most marker genes?
-        # Use which.max() because it breaks ties. Otherwise all genomes with same number of marker genes will have same color!
-        # Important: Identification of singleton taxa uses the original marker.list because after "consensus",
-        #  each scaffold has only one taxon assignment and scaffolds with >1 marker will be undercounted
-    ### For plot colors - identify singleton taxa and the taxon with the highest marker counts, and assign them special colors
-    taxnames <- names(table(marker.stats$taxon))                                                    # Names of taxa
-    taxcolors <- rep("",length(names(table(marker.stats$taxon))))                                   # Create vector to hold color names
-    taxcolors[which(names(table(marker.stats$taxon)) %in% singleton.taxa)] <- "grey50"              # Which taxa are singletons? Give them the color "grey50"
-    numsingletons <- length(taxcolors[which(names(table(marker.stats$taxon)) %in% singleton.taxa)]) # Count how many singleton taxa
-    taxcolors[which(names(table(marker.stats$taxon))==top.taxon)] <- "red"                          # Which taxon has the most marker genes? Give it the color "red"
-    numcolors <- length(table(marker.stats$taxon)) - 1 - numsingletons                              # How many other colors do we need, given that all singletons have same color?
-    thecolors <- rainbow(numcolors,start=1/6,end=5/6)                                               # Generate needed colors, from yellow to magenta, giving red a wide berth
-    taxcolors[which(!(names(table(marker.stats$taxon)) %in% singleton.taxa)  & names(table(marker.stats$taxon))!=top.taxon)] <- thecolors
-    colorframe <- data.frame(taxon=taxnames,colors=taxcolors)                                       # Data frame containing which colors correspond to which taxa
-    marker.stats <- merge(marker.stats,colorframe,by="taxon")                                       # Merge this by taxon into the marker.stats table for plotting (this works even when consensus option is called)
+    ## Count taxa supported only by one marker gene ################################
+    singleton.taxa <- names(table(marker.list$taxon)[which(table(marker.list$taxon)==1)])
+    ## Which taxon has the most marker genes? ######################################
+    top.taxon <- names(table(marker.list$taxon)[which.max(table(marker.list$taxon))])
+        # Use which.max() because it breaks ties. Otherwise all genomes with same
+        # number of marker genes will have same color!
+        # Important: Identification of singleton taxa uses the original marker.list
+        #            because after "consensus", each scaffold has only one taxon
+        #            assignment and scaffolds with >1 marker will be undercounted
+    ## For plot colors - identify singleton taxa and the taxon with the highest ####
+    ## marker counts, and assign them special colors ###############################
+    taxnames <- names(table(marker.stats$taxon))  # Names of taxa
+    taxcolors <- rep("",length(names(table(marker.stats$taxon))))  # Vector to hold color names
+    taxcolors[which(names(table(marker.stats$taxon))
+                    %in% singleton.taxa)] <- "grey50"  # Give singletons color "grey50"
+    numsingletons <- length(taxcolors[which(names(table(marker.stats$taxon))
+                                            %in% singleton.taxa)]) # Count singleton taxa
+    taxcolors[which(names(table(marker.stats$taxon))
+                    ==top.taxon)] <- "red"  # Give taxon with most marker genes color "red"
+    ## How many other colors do we need, given that all singletons have same color?#
+    numcolors <- length(table(marker.stats$taxon)) - 1 - numsingletons
+    ## Generate needed colors, from yellow to magenta, giving red a wide berth #####
+    thecolors <- rainbow(numcolors,
+                         start=1/6,
+                         end=5/6) 
+    taxcolors[which(!(names(table(marker.stats$taxon))%in% singleton.taxa)
+                    & names(table(marker.stats$taxon))!=top.taxon)] <- thecolors
+    ## Data frame containing which colors correspond to which taxa #################
+    colorframe <- data.frame(taxon=taxnames,
+                             colors=taxcolors)
+    ## Merge this by taxon into the marker.stats table for plotting (this works ####
+    ## even when consensus option is called) #######################################
+    marker.stats <- merge(marker.stats,
+                          colorframe,
+                          by="taxon")
     return(marker.stats)
 }
 
-generateLegendColors <- function(scaffold.stats, marker.list,taxon, consensus) {
+generateLegendColors <- function(scaffold.stats,
+                                 marker.list,
+                                 taxon,
+                                 consensus) {
 ## Generates colors for plot legends when coloring by markers
-    marker.stats <- mergeScaffMarker(scaffold.stats,marker.list,taxon, consensus)          # Some table merging to have points to plot for the markers
+    ## Some table merging to have points to plot for the markers ###################
+    marker.stats <- mergeScaffMarker(scaffold.stats,
+                                     marker.list,
+                                     taxon,
+                                     consensus) 
     marker.list[,"taxon"] <- marker.list[,which(names(marker.list)==taxon)]
-    singleton.taxa <- names(table(marker.list$taxon)[which(table(marker.list$taxon)==1)])       # Count how many taxa are only supported by one marker gene
-    top.taxon <- names(table(marker.list$taxon)[which.max(table(marker.list$taxon))])           # Which taxon has the most marker genes?
-    taxnames <- names(table(marker.stats$taxon))                                                    # Names of taxa
-    taxcolors <- rep("",length(names(table(marker.stats$taxon))))                                   # Create vector to hold color names
-    taxcolors[which(names(table(marker.stats$taxon)) %in% singleton.taxa)] <- "grey50"              # Which taxa are singletons? Give them the color "grey50"
-    numsingletons <- length(taxcolors[which(names(table(marker.stats$taxon)) %in% singleton.taxa)]) # Count how many singleton taxa
-    taxcolors[which(names(table(marker.stats$taxon))==top.taxon)] <- "red"                          # Which taxon has the most marker genes? Give it the color "red"
-    numcolors <- length(table(marker.stats$taxon)) - 1 - numsingletons                              # How many other colors do we need, given that all singletons have same color?
-    thecolors <- rainbow(numcolors,start=1/6,end=5/6)                                               # Generate needed colors, from yellow to magenta, giving red a wide berth
-    taxcolors[which(!(names(table(marker.stats$taxon)) %in% singleton.taxa)  & names(table(marker.stats$taxon))!=top.taxon)] <- thecolors
-    colorframe <- data.frame(taxon=taxnames,colors=taxcolors)                                       # Data frame containing which colors correspond to which taxa
-    marker.stats <- merge(marker.stats,colorframe,by="taxon")                                       # Merge this by taxon into the marker.stats table for plotting (this works even when consensus option is called)
+    ## Count how many taxa are only supported by one marker gene ###################
+    singleton.taxa <- names(table(marker.list$taxon)[which(table(marker.list$taxon)==1)])
+    ## Which taxon has the most marker genes? ######################################
+    top.taxon <- names(table(marker.list$taxon)[which.max(table(marker.list$taxon))]) 
+    taxnames <- names(table(marker.stats$taxon))  # Names of taxa
+    ## Vector to hold color names ##################################################
+    taxcolors <- rep("",length(names(table(marker.stats$taxon))))
+    taxcolors[which(names(table(marker.stats$taxon))  # Give singleton taxa color "grey50" 
+                    %in% singleton.taxa)] <- "grey50"
+    numsingletons <- length(taxcolors[which(names(table(marker.stats$taxon))
+                                            %in% singleton.taxa)]) # Count singleton taxa
+    taxcolors[which(names(table(marker.stats$taxon))
+                    ==top.taxon)] <- "red"  # Give taxon with most marker genes color "red"
+    ## How many other colors do we need, given that all singletons have same color? #
+    numcolors <- length(table(marker.stats$taxon)) - 1 - numsingletons
+    ## Generate needed colors, from yellow to magenta, giving red a wide berth ######
+    thecolors <- rainbow(numcolors,
+                         start=1/6,
+                         end=5/6)
+    taxcolors[which(!(names(table(marker.stats$taxon)) %in% singleton.taxa)
+                    & names(table(marker.stats$taxon))!=top.taxon)] <- thecolors
+    ## Data frame containing which colors correspond to which taxa ##################
+    colorframe <- data.frame(taxon=taxnames,
+                             colors=taxcolors) 
+    ## Merge this by taxon into the marker.stats table for plotting (this works #####
+    ## even when consensus option is called) ########################################
+    marker.stats <- merge(marker.stats,
+                          colorframe,
+                          by="taxon")
     return(colorframe)
 }
 
 pickBinPoints <- function(num.points=6,draw.polygon=TRUE) {
-## Wrapper for locator() and polygon() to perform interactive binning on the current plot. Returns the polygon vertices which can be used in get.bin.stats()
+## Wrapper for locator() and polygon() to perform interactive binning on the current
+## plot. Returns the polygon vertices which can be used in get.bin.stats()
     thepoints <- locator(num.points,pch=20,type="p")
     if (draw.polygon) { polygon(thepoints) }
     return(thepoints)
+}
+
+countSingleFromTable <- function(x) {
+    x.tab <- table(x)
+    uniq <- length(which(x.tab==1))
+    return(uniq)
+}
+
+getN50 <- function(x) {
+    # Adapted from R-bloggers:
+    # http://www.r-bloggers.com/calculating-an-n50-from-velvet-output/
+    x.sort <- sort(x,decreasing=TRUE)
+    n50 <- x[cumsum(x.sort) >= sum(x.sort)/2][1]
+    return(n50)
 }
