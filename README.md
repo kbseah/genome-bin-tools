@@ -278,3 +278,66 @@ This gives you a list of scaffold names in your bin. Use a tool like faSomeRecor
 ```
 
 Good luck!
+
+## Appendix: Description of user-supplied input data formats
+
+Trouble with importing data? Using some other software tool to generate the coverage/marker annotations etc.? The formats for the input files are described here.
+
+`gbtools` uses the `read.table()` function in R to import data, with tab-separated fields as default. Data must be text files. Lines starting with `#` are ignored as comments, and the single-quote character `'` will also throw an error.
+
+### Coverage tables
+
+The default output from BBtools `pileup.sh` or the `covstats=` output from `bbmap.sh` (also in the BBtools suite) can be used immediately after removing the `#` in the header line (otherwise the header fields will not be imported). 
+
+If you use some other mapping software, organize the scaffold IDs (character), coverage per scaffold (numeric), scaffold length (integer), and GC fraction (numeric between 0 and 1) as a tab-separated text file.
+
+The header line must include the following field names:
+```
+ID	Avg_fold	Length	Ref_GC
+```
+Columns with any other header names will be ignored.
+
+### Marker tables
+
+The perl script `parse_phylotype_result.pl` is provided to reformat the output from Amphora2 phylotyping for input to `gbtools`. The input is a tab-separated text file with scaffold IDs, marker IDs, name of the marker gene, and a taxonomy string. 
+
+The scaffold IDs must be in the set of scaffold IDs which were provided in the coverage tables. 
+
+The header line must include the following field names:
+
+```
+scaffold	markerid	gene	Superkingdom	Phylum	Class	Order	Family	Genus	Species
+```
+
+Columns with other header names will be ignored.
+
+If certain fields in the taxonomy string are missing, e.g. if the classification doesn't go all the way to species, you can leave it blank or fill with some dummy value.
+
+If there is no markerid or gene name (e.g. if you use Blobology-like annotation by Blastn of complete scaffolds), then you can enter dummy values or "NA" in those fields.
+
+### SSU marker table
+
+The perl script `get_ssu_for_genome_bin_tools.pl` runs `barrnap` and calls Usearch to compare the extracted SSU sequences to a local copy of the Silva database to assign taxonomy.
+
+The input table must be a tab-separated text file with scaffold ID, SSUid, and taxonomy string. As with the marker tables, scaffold IDs must be within the list of scaffold IDs in the coverage table, or there will be an error.
+
+The header line must include the following field names:
+```
+scaffold	SSUid	Superkingdom	Phylum	Class	Order	Family	Genus	Species
+```
+
+Columns with other header names will be ignored. 
+
+### tRNA marker table
+
+The tabular output from tRNAscan-SE can be directly used. Input is a space-separated text file. Fields are separated by one or more spaces (exact number doesn't matter). 
+
+The first three lines are header lines and are skipped. 
+
+Fields are in the order: scaffold ID, tRNA #, tRNA begin position, tRNA end position, tRNA type, anticodon, intron begin, bounds end, and Cove score.
+
+`gbtools` only cares about scaffold ID and tRNA type (i.e. the 1st and 5th columns). If you reformat the result of some other tRNA finder, the other fields can be filled in with dummy values.
+
+### User-supplied annotation tables
+
+To be implemented.
