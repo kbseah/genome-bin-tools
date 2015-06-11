@@ -58,12 +58,14 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
         }
         else {
             scaff <- read.table(file=as.character(covstats[1]),
-                                sep="\t",header=T)  # Contains all other data associated per contig
+                                sep="\t",
+                                header=T)  # Contains all other data associated per contig
             covs <- data.frame(ID=scaff$ID,
                                scaff$Avg_fold)  # Contains scaffold ID and coverage data
             for (i in 2:length(covstats)) {  # Read the other covstats files
                 scafftemp <- read.table(file=as.character(covstats[i]),
-                                        sep="\t",header=T)
+                                        sep="\t",
+                                        header=T)
                 covs <- merge(covs,
                               data.frame(ID=scafftemp$ID,
                                          scafftemp$Avg_fold),
@@ -77,8 +79,17 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
             if ( !is.na(mark[1]) ) {  # Read marker table
                 for (i in 1:length(marksource)) {
                     markTabTemp <- read.table(file=as.character(mark[i]),
-                                              sep="\t",header=T)
+                                              sep="\t",  # Tab separated input only
+                                              fill=TRUE,  # Fill ragged lines 
+                                              header=T)
                     namesvec <- names(markTabTemp)
+                    if (length(which(!markTabTemp$scaffold %in% scaff$ID)) > 0) {
+                        # Catch marker tables where scaffold IDs dont match
+                        # what's in the scaff table
+                        cat ("gbtools WARNING: Scaffold IDs in marker table ")
+                        print (as.character(mark[i]))
+                        cat (" doesn't match contig coverage tables \n")
+                    }
                     numMarksTemp <- dim(markTabTemp)[1]
                     sourcevector <- rep(as.character(marksource[i]),numMarksTemp)
                     markTabTemp <- cbind(markTabTemp,sourcevector)
@@ -174,10 +185,27 @@ print.gbt <- function(x) {
 
 summary.gbt <- print.gbt  # Identical to "print" behavior
 
-plot.gbt <- function(x, slice=1, cutoff=1000, taxon="Class", assemblyName="",      # Basic inputs
-                     marker=TRUE, marksource="", gc=FALSE, ssu=FALSE, trna=FALSE,  # Switches for plot features I
-                     consensus=TRUE, legend=FALSE, textlabel=FALSE,                # Switches for plot features II
-                     col="grey", log="default", main="default", xlab="default", ylab="default", ...) {
+plot.gbt <- function(x,  # Object of class gbt
+                     slice=1,  # Which coverage values to plot?
+                     cutoff=1000,  # Minimum contig length to plot
+                     taxon="Class",  # Taxonomic level for coloring markers
+                     assemblyName="",  # Assembly name, for plot title only
+                     marker=TRUE,  # Display marker color overlay
+                     marksource="",  # Which marker source to plot; if empty - default first
+                     gc=FALSE,  # Diffcov plot only: Color by GC instead of marker
+                     ssu=FALSE,  # Overlay SSU markers?
+                     trna=FALSE,  # Overlay tRNA markers?
+                     consensus=TRUE,  # Conflicting marker taxon assgs: take majority consensus?
+                     legend=FALSE,  # Add legend to color? (GC or marker taxon colors)
+                     textlabel=FALSE,  # Add text labels to SSU markers?
+                     col="grey",  # Color for contig plots
+                     log="default",  # Log scale for axis?
+                                     # Default y for GC-cov plot
+                                     # Default xy for differential coverage plot
+                     main="default",  # Custom title for plot
+                     xlab="default",  # Custom x-axis label for plot
+                     ylab="default",  # Custom y-axis label for plot
+                     ...) {
 ## Plot method for gbt objects
     if (is.na(slice[1]) || !is.numeric(slice)) {
         cat("gbtools ERROR: Please supply valid value for slice option\n")
@@ -383,8 +411,14 @@ plot.gbt <- function(x, slice=1, cutoff=1000, taxon="Class", assemblyName="",   
 
 choosebin <- function(x, ... ) UseMethod ("choosebin")  # Defines generic for choosebin function
 
-choosebin.gbt <- function(x,slice,taxon="Class",num.points=6,
-                          draw.polygon=TRUE,save=FALSE,file="interactive_bin.list") {
+choosebin.gbt <- function(x,  # Object of class gbt
+                          slice,  # Which slices used for the plot from which points to be chosen?
+                          taxon="Class",  # Deprecated - user don't change this
+                          num.points=6,  # Number of points to pick in polygon
+                          draw.polygon=TRUE,  # Add polygon overlay to plot?
+                          save=FALSE,  # Save list of contigs in bin to external file?
+                          file="interactive_bin.list"  # Name of file to save list of contigs in bin
+                          ) {
     require(sp)
 ## Wrapper for picking bin interactively from GC-cov or diff-cov plot
     if (!is.numeric(slice) || length(slice) > 2) {
@@ -433,7 +467,14 @@ choosebin.gbt <- function(x,slice,taxon="Class",num.points=6,
 
 gbtbin <- function(shortlist,x,slice,taxon,points,save,file) UseMethod("gbtbin")
 
-gbtbin.default <- function(shortlist,x,slice,taxon,points=NA,save=FALSE,file="interactive_bin.list") {
+gbtbin.default <- function(shortlist,  # Character vector, contigs to extract from gbt object
+                           x,  # Object of class gbt
+                           slice,  # Which slice used by choosebin()?
+                           taxon,  # Deprecated - user don't change
+                           points=NA,  # Number of points in polygon for choosebin()
+                           save=FALSE,  # Save contig list to external file?
+                           file="interactive_bin.list"  # File name to save contig list
+                           ) {
     scaff.subset <- subset(x$scaff, ID%in% shortlist)
     covs.subset <- subset(x$covs, ID%in%shortlist)
     markTab.subset <- NA
@@ -510,7 +551,7 @@ gbtbin.default <- function(shortlist,x,slice,taxon,points=NA,save=FALSE,file="in
     return(result)
 }
 
-print.gbtbin <- function(x) {  ## TODO: Prettify this
+print.gbtbin <- function(x) {
     cat("Object of class gbtbin\n")
     cat ("\nScaffolds:\n")
     lengthdf <- data.frame(x$summary$Total_length,
@@ -536,7 +577,7 @@ print.gbtbin <- function(x) {  ## TODO: Prettify this
     print(x$call)
 }
 
-summary.gbtbin <- function (x) { ## TODO: Prettify this
+summary.gbtbin <- function (x) {
     print(x)  # Print the standard summary
     ## Show the marker tables
     cat ("\nPolygon for choosebin (if applicable):\n")
@@ -547,7 +588,11 @@ summary.gbtbin <- function (x) { ## TODO: Prettify this
     print(x$tRNA.table)
 }
 
-points.gbtbin <- function(x,col="black", slice="default", cutoff=0, pch=20, ...) {
+points.gbtbin <- function(x,  # Object of class gbtbin
+                          col="black",  # Overlay plot points color
+                          slice="default",  # Which slice to use for plotting?
+                          cutoff=0,  # Min contig length to plot
+                          pch=20, ...) {
     ## Defaults to the same slice used to choose the bin ###########################
     if (slice == "default") { 
         slice <- x$slice
@@ -767,13 +812,16 @@ winnow.gbtbin <- winnow.gbt  # Inherit behavior of gbt method
 
 winnowMark <- function(x,param,value,save,file) UseMethod("winnowMark")
 
-winnowMark.gbt <- function(x,
-                           param="Class",
-                           value="Gammaproteobacteria",
-                           save=FALSE,
-                           file="bin_scaffolds.list") {
+winnowMark.gbt <- function(x,  # Object of class gbt
+                           param="Class",  # Which taxonomic level to choose?
+                           value="Gammaproteobacteria",  # Which taxon to choose?
+                           save=FALSE,  # Save list of contigs to external file?
+                           file="bin_scaffolds.list"  # File to save list of contigs
+                           ) {
 ## Winnow a gbt object by its marker table values
-    scafflist <- as.character(x$markTab$scaffold[which(x$markTab[,which(names(x$markTab)==param)]==value)])
+    scafflist <- as.character(x$markTab$scaffold[which(x$markTab[,which(names(x$markTab)
+                                                                        ==param)]
+                                                       ==value)])
     bin <- gbtbin (shortlist=scafflist,
                    x=x,
                    points=NA,
@@ -786,14 +834,15 @@ winnowMark.gbt <- function(x,
 
 winnowMark.gbtbin <- winnowMark.gbt
 
-fastgFishing <- function(x, bin, fastg.file, ... ) UseMethod ("fastgFishing")  # Defines generic for fastgFishing function
+fastgFishing <- function(x, bin, fastg.file, ... ) UseMethod ("fastgFishing") 
 
-fastgFishing.gbtbin <- function(x,
-                                bin,
-                                fastg.file,
-                                taxon="Class",
-                                save=FALSE,
-                                file="fished_bin.list") {
+fastgFishing.gbtbin <- function(x,  # Object of class gbt (parent object of the gbtbin)
+                                bin,  # Object of class gbtbin defined from x
+                                fastg.file,  # Fastg file for assembly of x
+                                taxon="Class",  # Deprecated - user pls ignore
+                                save=FALSE,  # Save list of contigs to external file?
+                                file="fished_bin.list"  # File to save contig list
+                                ) {
     command <- "perl"
 ## REPLACE THIS PATH WITH YOUR OWN PATH !! #########################################
     script.path <- "/home/kbseah/tools/my_scripts/genome-bin-tools/fastg_parser.pl" 
@@ -845,7 +894,11 @@ mergeScaffMarker <- function(scaffold.stats,marker.list,taxon,consensus=TRUE) {
     return(marker.stats)
 }
 
-generatePlotColors <- function(scaffold.stats, marker.list, taxon, consensus) {           # This took a very long time to get it right
+generatePlotColors <- function(scaffold.stats,  # scaff table from gbt object
+                               marker.list,  # markTab table from gbt object
+                               taxon,  # Taxonomic level to do the coloring
+                               consensus  # Logical-if taxon assgs conflict, take consens?
+                               ) {           # This took a very long time to get it right
 ## Generates colors for marker gene phylotypes in plot
     ## Merge tables to have points to plot for the markers #########################
     marker.stats <- mergeScaffMarker(scaffold.stats,
@@ -891,7 +944,7 @@ generatePlotColors <- function(scaffold.stats, marker.list, taxon, consensus) { 
     return(marker.stats)
 }
 
-generateLegendColors <- function(scaffold.stats,
+generateLegendColors <- function(scaffold.stats,  # Same params as generatePlotColors()
                                  marker.list,
                                  taxon,
                                  consensus) {
@@ -934,7 +987,9 @@ generateLegendColors <- function(scaffold.stats,
     return(colorframe)
 }
 
-pickBinPoints <- function(num.points=6,draw.polygon=TRUE) {
+pickBinPoints <- function(num.points=6,  # How many points in polygon?
+                          draw.polygon=TRUE  # Overlay polygon on plot?
+                          ) {
 ## Wrapper for locator() and polygon() to perform interactive binning on the current
 ## plot. Returns the polygon vertices which can be used in get.bin.stats()
     thepoints <- locator(num.points,pch=20,type="p")
