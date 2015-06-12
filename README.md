@@ -117,7 +117,7 @@ Start R. Required packages are `sp` and `plyr`, which can be installed like so:
 Install the gbtools package in R:
 
 ```R
- > install.packages("/PATH/TO/gbtools_2.0.tar.gz",repos=NULL,type="source")
+ > install.packages("/PATH/TO/gbtools_2.1.tar.gz",repos=NULL,type="source")
 ```
 
 where `/PATH/TO/` is replaced with the path to wherever you have the R source package.
@@ -325,8 +325,9 @@ The header line must include the following field names:
 ```
 scaffold	SSUid	Superkingdom	Phylum	Class	Order	Family	Genus	Species
 ```
-
 Columns with other header names will be ignored. 
+
+If no taxonomy information is available (e.g. you did not choose to run the classifier), simply fill those fields with NA or dummy variables. Empty fields will be filled with blanks on import.
 
 ### tRNA marker table
 
