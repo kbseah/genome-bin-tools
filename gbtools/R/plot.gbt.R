@@ -16,6 +16,14 @@
 #' \code{\link{choosebin}} function; the same slice argument must be passed
 #' to the choosebin function as the plot function, otherwise the results will
 #' be meaningless!
+#' If you wish to plot by user-supplied custom values (added to gbt object by
+#' the userAdd() function), indicate which ones to use for x- or y- axis in
+#' the userAxis= parameter. For example, to plot user-custom data set 1 in X-
+#' and user-custom data set 2 in Y-axis, specify userAxis=c(1,2). To plot vs.
+#' GC or coverage values, supply "gc" or "cov" to userAxis, e.g. GC as X-axis
+#' and user-value set 2 as Y-axis: userAxis=c("gc",2). If "cov" specified, it
+#' will take the coverage set that is given by the slice= parameter (default
+#' is the first set of coverage data).
 #' 
 #' @param x Object of class gbt
 #' @param slice For plotting coverage data, which sample to use? (see
@@ -28,6 +36,7 @@
 #' @param gc Color plot by GC% instead of taxon markers? Only used for
 #'            differential coverage plots, i.e. when two values are supplied
 #'            to the slice parameter. (logical, default FALSE)
+#' @param userAxis Use user-custom values for axis. See Details
 #' @param ssu Draw markers for SSU genes? (logical, default FALSE)
 #' @param trna Draw markers for tRNA genes? (logical, default FALSE)
 #' @param consensus For contigs with more than one marker gene with conflict
@@ -59,6 +68,7 @@ plot.gbt <- function(x,  # Object of class gbt
                      consensus=TRUE,  # Conflicting marker taxon assgs: take majority consensus?
                      legend=FALSE,  # Add legend to color? (GC or marker taxon colors)
                      textlabel=FALSE,  # Add text labels to SSU markers?
+                     userAxis=NA,  # Use userTab variables for axis
                      col="grey",  # Color for contig plots
                      log="default",  # Log scale for axis?
                                      # Default y for GC-cov plot
@@ -70,20 +80,121 @@ plot.gbt <- function(x,  # Object of class gbt
 ## Plot method for gbt objects
     if (is.na(slice[1]) || !is.numeric(slice)) {
         cat("gbtools ERROR: Please supply valid value for slice option\n")
-    } else if (!is.na(slice[1]) && length(slice)==1) {
-    ## GC-Coverage plot ##############################################
-        ## Make a new data.frame for plotting ################################
-        X <- merge( data.frame(ID=x$scaff$ID,Ref_GC=x$scaff$Ref_GC,Length=x$scaff$Length),
-                   data.frame(ID=x$covs$ID,Avg_fold=x$covs[slice[1]+1]),
+    }
+    ## Generate data.frame subset for user-custom axis values #################
+    else if (!is.na(userAxis[1])) {
+        if (length(userAxis)>0 ){
+            ## Catch exceptions ###################################################
+            if (length (userAxis)>2 ) {
+                cat ("gbtools ERROR: Cannot supply more than 2 userAxis values\n")
+            }
+            else {
+                ## Define X-axis ##################################################
+                if (userAxis[1]=="gc") {
+                    userX.x <- data.frame(ID=x$scaff$ID,
+                                          Ref_GC=x$scaff$Ref_GC,
+                                          Length=x$scaff$Length,
+                                          xVals=x$scaff$Ref_GC)
+                } else if (userAxis[1]=="cov") {
+                    userX.x <- merge(data.frame(ID=x$scaff$ID,
+                                                Ref_GC=x$scaff$Ref_GC,
+                                                Length=x$scaff$Length),
+                                     data.frame(ID=x$covs$ID,
+                                                xVals=x$covs[slice[1]+1]),
+                                     by="ID")
+                } else if (any(userAxis[1]==x$userSource)) {
+                    sourcenum <- which(x$userSource==userAxis[1])
+                    userX.x <- merge(data.frame(ID=x$scaff$ID,
+                                                Ref_GC=x$scaff$Ref_GC,
+                                                Length=x$scaff$Length),
+                                     data.frame(ID=x$userTab[[sourcenum]]$scaffold,
+                                                xVals=x$userTab[[sourcenum]][2]),
+                                     by="ID")
+                } else {
+                    cat ("gbtools ERROR: Invalid value for userAxis\n")
+                }
+                ## Define Y-axis ##################################################
+                if (userAxis[2]=="gc") {
+                    userX.y <- data.frame(ID=x$scaff$ID,
+                                          yVals=x$scaff$Ref_GC)
+                } else if (userAxis[2] =="cov") {
+                    userX.y <- data.frame(ID=x$covs$ID,
+                                          yVals=x$covs[slice[1]+1])
+                } else if (any(userAxis[2]==x$userSource)) {
+                    sourcenum <- which(x$userSource==userAxis[2])
+                    userX.y <- data.frame(ID=x$userTab[[sourcenum]]$scaffold,
+                                          yVals=x$userTab[[sourcenum]][2])
+                } else {
+                    cat ("gbtools ERROR: Invalid value for userAxis\n")
+                }
+                ## Make plot data.frame ###########################################
+                X <- merge(userX.x,
+                           userX.y,
+                           by="ID")
+                names(X) <- c("ID","Ref_GC","Length","xVals","yVals")
+                if (cutoff > 0) {
+                    X <- subset(X,Length>=cutoff)
+                }
+                ## Set plot parameters ############################################
+                if (main=="default") {  # Plot title
+                    main <- paste("Plot for metagenome ",
+                                  as.character(assemblyName))
+                }
+                if (xlab=="default") {  # X-axis label default
+                    if (userAxis[1]=="gc") {
+                        xlab <- "GC"
+                    } else if (userAxis[1]=="cov") {
+                        xlab <- paste("Coverage ",
+                                      as.character(slice[1]))
+                    } else {
+                        xlab <- paste("User supplied variable ",
+                                      as.character(userAxis[1]))
+                    }
+                }
+                if (ylab=="default") {  # Y-axis label default
+                    if (userAxis[2]=="gc") {
+                        ylab <- "GC"
+                    } else if (userAxis[2]=="cov") {
+                        ylab <- paste("Coverage ",
+                                      as.character(slice[1]))
+                    } else {
+                        ylab <- paste("User supplied variable ",
+                                      as.character(userAxis[2]))
+                    }
+                }
+                if (log=="default") {  # Default log scale only for cov parameter
+                    if (userAxis[1]=="cov" &&
+                        userAxis[2]!="cov") {
+                        log <- "x"
+                    } else if (userAxis[2]=="cov" &&
+                               userAxis[1]!="cov") {
+                        log <- "y"
+                    } else {
+                        log <- ""
+                    }
+                }
+            }
+        }
+    }
+    ## Generate data.frame subset for GC-Coverage plot ########################
+    else if (!is.na(slice[1]) && length(slice)==1) {
+        ## Make a new data.frame for plotting #################################
+        X <- merge(data.frame(ID=x$scaff$ID,
+                              Ref_GC=x$scaff$Ref_GC,
+                              Length=x$scaff$Length,
+                              xVals=x$scaff$Ref_GC),
+                   data.frame(ID=x$covs$ID,
+                              yVals=x$covs[slice[1]+1]),
                    by="ID")
-        names(X) <- c("ID","Ref_GC","Length","Avg_fold")
-        
-        ## Set plot parameters #################################################
+        names(X) <- c("ID","Ref_GC","Length","xVals","yVals")
+        ## Do the basic plot ##################################################
         if (cutoff > 0) {  # Minimum length cutoff for contigs to be plotted
             X <- subset(X,Length >= cutoff)
         }
+        ## Set plot parameters ################################################
         if (main=="default") {  # Plot title
-            main <- paste("Coverage-GC plot for metagenome ",as.character(assemblyName))
+            main <- paste("Coverage-GC plot for metagenome ",
+                          as.character(assemblyName))
         }
         if (xlab=="default") {  # X-axis label default
             xlab <- "GC"
@@ -94,36 +205,72 @@ plot.gbt <- function(x,  # Object of class gbt
         if (log=="default") {  # Default y-axis on logarithmic scale
             log <- "y"
         }
-        
-        ## Do the basic plot ###############################################
-        plot(x=X$Ref_GC,
-             y=X$Avg_fold,
+    }
+    ## Differential coverage plot #############################################
+    else if (!is.na(slice[1]) && length(slice)==2) {
+        ## Make a new data.frame for plotting #################################
+        X <- merge (data.frame (ID=x$scaff$ID,
+                                Ref_GC=x$scaff$Ref_GC,
+                                Length=x$scaff$Length),
+                    data.frame (ID=x$covs$ID,
+                                xVals=x$covs[slice[1]+1],
+                                yVals=x$covs[slice[2]+1]),
+                    by="ID")
+        names(X) <- c("ID","Ref_GC","Length","xVals","yVals")
+        ## Plot parameters ####################################################
+        if (cutoff > 0 ) {
+            X <- subset(X,Length>=cutoff)
+        }
+        if (main == "default") {  # Default plot title
+            main <- paste("Differential coverage plot for metagenome ",
+                          as.character(assemblyName))
+        }
+        if (xlab=="default") {  # Default X-axis label
+            xlab <- paste("Coverage ",slice[1])
+        }
+        if (ylab=="default") {  # Default Y axis label
+            ylab <- paste("Coverage ",slice[2])
+        }
+        if (log=="default") {  # Default both x- and y-axis on logarithmic scale
+            log <- "xy"
+        }
+    }
+    ## Basic plot without GC coloring #########################################
+    if (!gc) {
+        ## Draw the basic plot ################################################
+        plot(x=X$xVals,
+             y=X$yVals,
              pch=20,cex=sqrt(X$Length)/100,
-             col=col,log=log,
-             main=main, xlab=xlab,ylab=ylab, ...)
-        
+             col=col,
+             log=log,
+             main=main,
+             xlab=xlab,
+             ylab=ylab,
+             ...)
         ## Add marker taxonomy overlay ########################################
         if (marker && !is.na(x$markTab)) {
             if (marksource == "") {
-                marksource <- x$markSource[1]     # In default, display markers from the first source
-            } else if (is.character(marksource) && length(marksource)==1) {
-                # catch cases where marksource is not matching entries in x$markSource
-                if (!any(x$markSource==marksource) ) {
-                    cat ("gbtools WARNING: marksource doesn't match any entries.
-                         Defaulting to first...\n")
+                marksource <- x$markSource[1]  # Default: Display markers from first source
+            } else if (is.character (marksource)
+                       && length(marksource)==1) {
+                ## Catch cases where marksource doesn't match entries in x$marksource
+                if (!any(x$markSource==marksource)) {
+                    cat ("gbtools WARNING: marksource doesn't match any entries,
+                         defaulting to the first...\n")
                     marksource <- x$markSource[1]
                 }
-            } else if (is.character(marksource) && length(marksource) > 1) {
+            } else if (is.character(marksource)
+                       && length(marksource) > 1) {
                 cat ("gbtools WARNING: Only one marker source can be plotted
-                     (marksource parameter). Defaulting to first supplied... \n")
+                     as overlay (marksource parameter). Defaulting to first supplied\n")
                 marksource <- marksource[1]
             } else {
                 cat ("gbtools ERROR: Please check marksource argument\n")
             }
             markTabTemp <- subset(x$markTab,source==marksource)
             mark.stats <- generatePlotColors(X,markTabTemp,taxon,consensus)
-            points(x=mark.stats$Ref_GC,
-                   y=mark.stats$Avg_fold,
+            points(x=mark.stats$xVals,
+                   y=mark.stats$yVals,
                    pch=20,cex=sqrt(mark.stats$Length)/100,
                    col=as.character(mark.stats$colors))
             if (legend) {
@@ -137,63 +284,27 @@ plot.gbt <- function(x,  # Object of class gbt
                        fill=as.character(new.colorframe$colors))
             }
         }
-        
-        ## Add SSU marker overlay ################################################################
-        if (ssu && !is.na(x$ssuTab)) {
-            ssu.stats <- mergeScaffMarker(X,x$ssuTab, taxon, consensus=FALSE)
-            points(ssu.stats$Ref_GC, ssu.stats$Avg_fold,pch=10,cex=2,col="black")
-            if (textlabel==TRUE) {
-                text(ssu.stats$Ref_GC,ssu.stats$Avg_fold,as.character(ssu.stats$taxon),
-                     pos=3,offset=0.2,font=2)
-            }
-        }
-        
-        ## Add tRNA marker overlay ###################################################################
-        if (trna && !is.na(x$trnaTab)) {
-            trna.stats <- merge(X, x$trnaTab, by.x="ID",by.y="scaffold")
-            points(trna.stats$Ref_GC,trna.stats$Avg_fold,
-                   pch=4,cex=1,col="black")
-        }
-    } else if (!is.na(slice[1]) && length(slice)==2) {
-    ## Differential coverage plot ############################################################
-        ## Make a new data.frame for plotting ##########################################################
-        X <- merge (data.frame (ID=x$scaff$ID,
-                                Ref_GC=x$scaff$Ref_GC,
-                                Length=x$scaff$Length),
-                    data.frame (ID=x$covs$ID,
-                                Avg_fold_1=x$covs[slice[1]+1],
-                                Avg_fold_2=x$covs[slice[2]+1]),
-                    by="ID")
-        names(X) <- c("ID","Ref_GC","Length","Avg_fold_1","Avg_fold_2")
-        ## Plot parameters #########################################################
-        if (cutoff > 0 ) {
-            X <- subset(X,Length>=cutoff)
-        }
-        if (main == "default") {  # Default plot title
-            main <- paste("Differential coverage plot for metagenome ",as.character(assemblyName))
-        }
-        if (xlab=="default") {  # Default X-axis label
-            xlab <- paste("Coverage ",slice[1])
-        }
-        if (ylab=="default") {  # Default Y axis label
-            ylab <- paste("Coverage ",slice[2])
-        }
-        if (log=="default") {  # Default both x- and y-axis on logarithmic scale
-            log <- "xy"
-        }
-        ## Define GC palette colors (from Albertsen scripts) #######################
-        gbr <- colorRampPalette(c("green","blue","orange","red"))
-        ## Catch invalid coloring option combination ###############################
-        if (gc && marker & !is.na(x$markTab)) {  
-            cat("plase choose to plot only with GC or marker coloring, but not both!\n")
-        }
-        ## Color plot by GC% values ################################################
-        else if (gc && !marker) {  
+    }
+    ## Add GC coloring overlay ################################################
+    else if (gc) {
+        ## Catch exception ####################################################
+        if (marker && gc) {
+            cat ("gbtools ERROR: Cannot color by both marker and GC values \n")
+        } else {
+            ## Define GC palette colors (from Albertsen scripts) ##############
+            gbr <- colorRampPalette(c("green","blue","orange","red"))
             palette (adjustcolor(gbr(70)))
-            plot(x=X$Avg_fold_1,
-                 y=X$Avg_fold_2,
-                 pch=20,cex=sqrt(X$Length)/100,col=X$Ref_GC*100,
-                 main=main,log=log,xlab=xlab,ylab=ylab,...)
+            ## Draw plot colored by GC ########################################
+            plot(x=X$xVals,
+                 y=X$yVals,
+                 pch=20,
+                 cex=sqrt(X$Length)/100,
+                 col=X$Ref_GC*100,  # This colors points by GC values
+                 main=main,
+                 log=log,
+                 xlab=xlab,
+                 ylab=ylab,
+                 ...)
             if (legend) {
                 legendcolors <- c("20","30","40","50","60","70","80")
                 legend ("topright",
@@ -201,71 +312,56 @@ plot.gbt <- function(x,  # Object of class gbt
                         fill=as.numeric(legendcolors))
             }
         }
-        ## Color plot by Marker taxonomy ############################################
-        else if (!gc && !is.na(x$markTab) && marker) {  
-            ## Identify which marker source to plot
-            if (marksource == "") {
-                marksource <- x$markSource[1]     # In default, display markers from the first source
-            } else if (is.character(marksource) && length(marksource)==1) {
-                # catch cases where marksource is not matching entries in x$markSource
-                if (!any(x$markSource==marksource) ) {
-                    cat ("gbtools WARNING: marksource doesn't match any entries.
-                         Defaulting to first...\n")
-                    marksource <- x$markSource[1]
-                }
-            } else {
-                cat ("gbtools ERROR: Only one marker source can be plotted
-                     (marksource parameter)\n")
-            }
-            markTabTemp <- subset(x$markTab,source==marksource)
-            ## Produce the base plot
-            plot (x=X$Avg_fold_1,
-                  y=X$Avg_fold_2,
-                  pch=20,cex=sqrt(X$Length)/100,
-                  main=main,col=col,log=log,ylab=ylab,xlab=xlab, ...)
-            ## Generate plot colors for markers and overlay with markers
-            mark.stats <- generatePlotColors(X,markTabTemp,taxon,consensus)
-            points(x=mark.stats$Avg_fold_1,
-                   y=mark.stats$Avg_fold_2,
-                   pch=20,cex=sqrt(mark.stats$Length)/100,
-                   col=as.character(mark.stats$colors))
-            if (legend) {
-                colorframe <- generateLegendColors(X,markTabTemp,taxon,consensus)
-                new.colorframe <- subset(colorframe,colors!="grey50")
-                newrow <- c("singletons","grey50")
-                new.colorframe <- rbind (new.colorframe,newrow)
-                legend("topright",
-                       legend=new.colorframe$taxon,
-                       cex=0.6,
-                       fill=as.character(new.colorframe$colors))
-            }
+    }
+    ## Add SSU marker overlay #################################################
+    if (ssu && !is.na(x$ssuTab)) {
+        ssu.stats <- mergeScaffMarker(X,
+                                      x$ssuTab,
+                                      taxon,
+                                      consensus=FALSE)
+        points(x=ssu.stats$xVals,
+               y=ssu.stats$yVals,
+               pch=10,
+               cex=2,
+               col="black")
+        ## Text label for SSU markers #########################################
+        if (textlabel==TRUE) {
+            text(x=ssu.stats$xVals,
+                 y=ssu.stats$yVals,
+                 as.character(ssu.stats$taxon), # Taxonomic level to get label
+                 pos=3,
+                 offset=0.2,
+                 font=2)
         }
-        ## Do not color plot ###########################################################################
-        else if (!gc && !marker) {  
-            plot (X$Avg_fold_1,X$Avg_fold_2,pch=20,cex=sqrt(X$Length)/100,
-                  main=main,col=col,log=log,xlab=xlab,ylab=ylab, ...)
-        }
-        if (!(gc&&marker)) {
-            
-            ## Add SSU markers to plot ############################################################################
-            if (ssu && !is.na(x$ssuTab)) { 
-                ssu.stats <-mergeScaffMarker (X,x$ssuTab,taxon,consensus=FALSE)
-                points(x=ssu.stats$Avg_fold_1,
-                       y=ssu.stats$Avg_fold_2,
-                       pch=10,cex=2,col="black")
-                if (textlabel==TRUE) {  # Add text labels to SSU markers
-                    text(x=ssu.stats$Avg_fold_1,
-                         y=ssu.stats$Avg_fold_2,
-                         as.character(ssu.stats$taxon),pos=3,offset=0.2,font=2)
-                }
-            }
-            ## Add tRNA markers to plot ##########################################################################
-            if (trna && !is.na(x$trnaTab)) {  
-                trna.stats <- merge(X,x$trnaTab,by.x="ID",by.y="scaffold")
-                points(x=trna.stats$Avg_fold_1,
-                       y=trna.stats$Avg_fold_2,
-                       pch=4,cex=1,col="black")
-            }
-        }
+    }
+    ## Add tRNA marker overlay ################################################
+    if (trna && !is.na(x$trnaTab)) {
+        trna.stats <- merge(X,
+                            x$trnaTab,
+                            by.x="ID",
+                            by.y="scaffold")
+        points(x=trna.stats$xVals,
+               y=trna.stats$yVals,
+               pch=4,
+               cex=1,
+               col="black")
+    }
+}
+
+plot.gbtbin <- function(x, slice="default", ...) {
+    ## Defaults to same slice used to choose the bin ##########################
+    if (slice == "default") { 
+        slice <- x$slice
+    }
+    ## Catch invalid slice values #############################################
+    if (is.na(x$slice)
+        || !is.numeric(x$slice)
+        || length(x$slice) > 2) { 
+        cat ("gbtools ERROR: Please specify valid value for slice option for
+             this bin\n")
+    }
+    ## Else inherit same plot method as gbt class, for simplicty's sake #######
+    else {
+        plot.gbt (x=x, slice=slice, ...) 
     }
 }

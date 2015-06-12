@@ -17,6 +17,6 @@ lej.gbtbin <- function(x1,x2) {
     result <- setOperation.gbtbin(x1=x1,
                                   x2=x2,
                                   shortlist=shortlist)
-    result$call <- match.call()  # Record function call that returned this merged bin
+    result$call[[length(result$call)+1]] <- match.call()  # Record function call 
     return(result)
 }

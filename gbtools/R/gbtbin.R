@@ -30,13 +30,16 @@ gbtbin.default <- function(shortlist,  # Character vector, contigs to extract fr
                            save=FALSE,  # Save contig list to external file?
                            file="interactive_bin.list"  # File name to save contig list
                            ) {
-    scaff.subset <- subset(x$scaff, ID%in% shortlist)
+    scaff.subset <- subset(x$scaff, ID%in%shortlist)
     covs.subset <- subset(x$covs, ID%in%shortlist)
     markTab.subset <- NA
     marksource <- x$markSource
     ssuTab.subset <- NA
     trnaTab.subset <- NA
-    # Summary statistics initialize
+    thecall <- x$call
+    userTab <- list()
+    userSource <- x$userSource
+    ## Summary statistics initialize ##########################################
     bin.nummarkers <- NA
     bin.uniqmarkers <- NA
     bin.numtRNAs <- NA
@@ -45,7 +48,7 @@ gbtbin.default <- function(shortlist,  # Character vector, contigs to extract fr
     bin.singlemarkers <- NA
     marker.tab <- list()
     tRNAs.tab <- NA
-    ## Take subset of markTab ##############################
+    ## Take subset of markTab #################################################
     if (is.data.frame(x$markTab)) {
         markTab.subset <- subset(x$markTab,scaffold%in% shortlist)
         for (j in 1:length(marksource)) {
@@ -56,19 +59,26 @@ gbtbin.default <- function(shortlist,  # Character vector, contigs to extract fr
             bin.singlemarkers[j] <- length(which(marker.tab[[j]] ==1))
         }
     }
-    ## Take subset of ssuTab ##############################
+    ## Take subset of ssuTab ##################################################
     if (is.data.frame(x$ssuTab)) {
         ssuTab.subset <- subset(x$ssuTab,scaffold%in%shortlist)
         bin.numSSUs <- dim(ssuTab.subset)[1]
     }
-    ## Take subset of trnaTab ##############################
+    ## Take subset of trnaTab #################################################
     if (is.data.frame(x$trnaTab)) {
         trnaTab.subset <- subset(x$trnaTab,scaffold%in% shortlist)
         bin.numtRNAs <- dim(trnaTab.subset)[1]
         tRNAs.tab <- table (trnaTab.subset$tRNA_type)
         bin.uniqtRNAs <- length(which(tRNAs.tab > 0))
     }
-    ## Summary statistics ######################################
+    ## Take subset of userTab #################################################
+    if (length(x$userTab) > 0) {
+        for (i in 1:length(x$userTab)) {
+            userTabSubset <- subset(x$userTab[[i]],scaffold %in% shortlist)
+            userTab[[i]] <- userTabSubset
+        }
+    }
+    ## Summary statistics #####################################################
     bin.length <- sum(scaff.subset$Length)
     bin.numscaffolds <- dim(scaff.subset)[1]
     bin.summary <- list(Total_length=bin.length,
@@ -85,23 +95,26 @@ gbtbin.default <- function(shortlist,  # Character vector, contigs to extract fr
                         Num_tRNAs=bin.numtRNAs,
                         Num_tRNAs_types=bin.uniqtRNAs)
     
-    ## Write to file, if save option is used ######################
+    ## Write to file, if save option is used ##################################
     if (save) {
         write(as.vector(scaff.subset$ID),file=file)
     }
     
-    ## Package and return result ######################################
+    ## Package and return result ##############################################
     result <- list(scaff=scaff.subset,
                    covs=covs.subset,
                    markTab=markTab.subset,
                    markSource=marksource,
                    ssuTab=ssuTab.subset,
                    trnaTab=trnaTab.subset,
+                   userTab=userTab,
+                   userSource=userSource,
                    summary=bin.summary,
                    marker.table=marker.tab,
                    tRNA.table=tRNAs.tab,
                    points=points,
-                   slice=slice)
+                   slice=slice,
+                   call=thecall)
     class(result) <- "gbtbin"
     return(result)
 }

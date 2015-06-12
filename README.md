@@ -117,7 +117,7 @@ Start R. Required packages are `sp` and `plyr`, which can be installed like so:
 Install the gbtools package in R:
 
 ```R
- > install.packages("/PATH/TO/gbtools_2.1.tar.gz",repos=NULL,type="source")
+ > install.packages("/PATH/TO/gbtools_2.2.tar.gz",repos=NULL,type="source")
 ```
 
 where `/PATH/TO/` is replaced with the path to wherever you have the R source package.
@@ -262,7 +262,53 @@ Like with GC-coverage plots, you can overlay taxonomic marker genes, SSU rRNA ma
 
 The same `choosebin` function is used to choose a bin from a differential coverage plot, except that the `slice=` parameter must be the same as the one used to draw the plot. Adding and subtracting bins works in the same way, as is fishing with Fastg information. 
 
-## 6. Mapping and reassembly
+## 6. Advanced: Adding your own variables for plotting or analysis
+
+`gbtools` offers facility for plotting by GC and coverage values. But what if you have some other variables that you want to plot?
+
+They must meet the following criteria:
+ * Numeric
+ * Single value per scaffold
+
+An example: You have done a PCA analysis of tetranucleotide frequencies per scaffold, and you want to plot coverage vs. 1st principal component (in place of GC%).
+
+### 6a. Attach the user-custom data to your existing `gbt` object
+
+You originally imported the basic data and annotations with the `gbt()` function. In the earlier sections of this manual, we used the example of an object called `d`.
+
+Suppose the custom data is in a data frame called `customFrame`. It MUST have a column called `scaffold` and a second column with the variable to be plotted.
+
+Attach the custom data to your original object with the `userAdd` function:
+```R
+ > d.user <- userAdd(d,customFrame,"pca") # "pca" is the name you give to this variable
+```
+
+### 6b. Plot with custom variable as x- or y-axis
+
+You can call the user-custom variable in the `plot()` function using the `userAxis=` parameter. You will need to specify what is the x- and y-axis you want. Suppose you want to plot custom variable "pca" in the x-axis, and coverage from sample 1 in the y-axis:
+```R
+ > plot(d.user,userAxis=c("pca","cov"),slice=1)
+ > plot(d.user,userAxis=c("pca","cov"),slice=1,marker=FALSE,gc=TRUE) # color by GC%
+```
+If you want GC as x-axis, and custom variable "pca" as y-axis:
+```R
+ > plot(d.user,userAxis=c("gc","pca"))
+```
+You can reproduce the behavior of the GC-coverage plot with `userAxis=`:
+```R
+ > plot(d.user,userAxis=c("gc","cov"),slice=1)
+ > plot(d.user,slice=1) # Does the same thing
+```
+
+### 6c. Other uses for custom variables (for developers)
+
+The custom variables that the user adds with `userAdd()` are stored in a list object called `userTab`. When plotting, only the first column (after the `scaffold` ID column) is used. Non-numeric values will throw an error.
+
+However, the `userTab` feature is designed to be flexible, so that users (or me, in the future) can add their own custom functions. `userAdd()` will not complain if you add categorical variables instead of numeric (as long as you don't try to plot it). In the future, I could implement coloring plot overlays by custom user data, for example. But since this is unlikely to be a common usage scenario, it is unimplemented for now.
+
+I recommend that any custom functions written within the `gbtools` framework make use of the `userTab` feature and avoid adding more custom attributes to the `gbt` object class.
+
+## 7. Mapping and reassembly
 
 Once you have your final bin, either the shortlist of scaffolds in that bin was exported with the save parameter when that bin was defined, or you can use the native R function write():
 
@@ -341,4 +387,4 @@ Fields are in the order: scaffold ID, tRNA #, tRNA begin position, tRNA end posi
 
 ### User-supplied annotation tables
 
-To be implemented.
+Must be a data.frame object with at least two columns, one of which has name `scaffold`. The second column must be numeric if the data is meant for plotting, otherwise it can be of any type.

@@ -62,7 +62,7 @@ choosebin.gbt <- function(x,  # Object of class gbt
                          points=bin,
                          save=save,
                          file=file)
-        result$call <- match.call()  # Record the choosebin() call used to produce this bin
+        result$call[[length(result$call)+1]] <- match.call()  # Record choosebin() function call
         return(result)
     }
 }

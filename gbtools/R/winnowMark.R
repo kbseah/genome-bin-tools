@@ -25,7 +25,7 @@ winnowMark.gbt <- function(x,  # Object of class gbt
                    slice=NA,
                    save=save,
                    file=file)
-    bin$call <- match.call()  # Record function call that produced this winnow bin
+    bin$call[[length(bin$call)+1]] <- match.call()  # Record function call
     return(bin)
 }
 winnowMark.gbtbin <- winnowMark.gbt

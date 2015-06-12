@@ -5,8 +5,8 @@
 #' @seealso \code{\link{gbtbin}}, \code{\link{summary.gbtbin}}
 #' @export
 print.gbtbin <- function(x) {
-    cat("Object of class gbtbin\n")
-    cat ("\nScaffolds:\n")
+    cat("*** Object of class gbtbin ***\n")
+    cat ("\n*** Scaffolds ***\n")
     lengthdf <- data.frame(x$summary$Total_length,
                            x$summary$Num_scaffolds,
                            x$summary$Scaff_length_max,
@@ -15,17 +15,19 @@ print.gbtbin <- function(x) {
                            x$summary$Scaff_length_N50)
     names(lengthdf) <- c("Total", "Scaffolds", "Max", "Min", "Median", "N50")
     print(lengthdf)
-    cat("\nMarkers:\n")
+    cat("\n*** Markers ***\n")
     markerdf <- data.frame(x$summary$Marker_sources,
                            x$summary$Num_markers,
                            x$summary$Num_unique_markers,
                            x$summary$Num_singlecopy_markers)
     names(markerdf) <- c("Source","Total","Unique","Singlecopy")
     print(markerdf)
-    cat("\nSSU markers:\n")
+    cat("\n*** SSU markers ***\n")
     print(x$summary$Num_SSUs)
-    cat("\ntRNA_markers:\n")
+    cat("\n*** tRNA_markers ***\n")
     print(x$summary$Num_tRNAs)
-    cat("\nCall:\t")
+    cat("\n*** User-supplied variables ***\n")
+    print(x$userSource)
+    cat("\n*** Function call history ***\n")
     print(x$call)
 }

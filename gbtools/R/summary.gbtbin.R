@@ -11,10 +11,10 @@
 summary.gbtbin <- function (x) {
     print(x)  # Print the standard summary
     ## Show the marker tables
-    cat ("\nPolygon for choosebin (if applicable):\n")
+    cat ("\n*** Polygon for choosebin (if applicable) ***\n")
     print(x$points)
-    cat ("\nTable(s) of marker genes\n")
+    cat ("\n*** Table(s) of marker genes ***\n")
     print(x$marker.table)
-    cat ("\nTable of tRNA genes\n")
+    cat ("\n*** Table of tRNA genes ***\n")
     print(x$tRNA.table)
 }

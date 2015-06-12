@@ -54,7 +54,7 @@ winnow.gbt <- function (x,
                   points=NA,
                   save=save,
                   file=file)
-    bin$call <- match.call()  # Record function call that produced this winnow bin
+    bin$call[[length(bin$call)+1]] <- match.call()  # Record function call 
     return(bin)
 }
 winnow.gbtbin <- winnow.gbt  # Inherit behavior of gbt method

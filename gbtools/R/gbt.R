@@ -138,14 +138,19 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
                              Num_tRNAs=numTrna)
         
         ## Package and return result #########################################
+        userTab <- list()  # Create userTab as an empty list to hold user-custom data
+        userSource <- ""  # Create userSource vector to hold names of user-custom data
         result <- list(scaff=scaff,
                        covs=covs,
                        markTab=markTab,
                        markSource=marksource,
                        ssuTab=ssuTab,
                        trnaTab=trnaTab,
+                       userTab=userTab,
+                       userSource=userSource,
                        summary=summarystats)
-        result$call <- match.call()  # Record function call that produces this gbt object
+        result$call <- list()
+        result$call[[1]] <- match.call()  # Record function call that produces this gbt object
         class(result) <- "gbt"
         result
     }    

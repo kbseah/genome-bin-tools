@@ -29,7 +29,13 @@ fastgFishing.gbtbin <- function(x,  # Object of class gbt (parent object of the 
                                    input=as.character(bin$scaff$ID),
                                    stderr=NULL,
                                    stdout=TRUE)
-    newbin <- gbtbin(shortlist=fished.contigs.list,x=x,slice=NA,taxon=taxon,save=save,file=file)
+    newbin <- gbtbin(shortlist=fished.contigs.list,
+                     x=x,
+                     slice=NA,
+                     taxon=taxon,
+                     save=save,
+                     file=file)
+    newbin$call[[length(newbin$call)+1]] <- match.call() # Record function call
     return(newbin)
 }
 

@@ -5,8 +5,8 @@
 #' @seealso \code{\link{gbt}}, \code{\link{summary.gbt}}
 #' @export
 print.gbt <- function(x) {
-    cat("Object of class gbt\n")
-    cat("\nScaffolds:\n")
+    cat("*** Object of class gbt ***\n")
+    cat("\n*** Scaffolds ***\n")
     lengthdf <- data.frame(x$summary$Total_length,
                            x$summary$Num_scaffolds,
                            x$summary$Scaff_length_max,
@@ -15,12 +15,14 @@ print.gbt <- function(x) {
                            x$summary$Scaff_length_N50)
     names(lengthdf) <- c("Total", "Scaffolds", "Max", "Min", "Median", "N50")
     print(lengthdf)
-    cat("\nMarker counts by source:")
+    cat("\n*** Marker counts by source ***")
     print(x$summary$Num_markers)
-    cat("\nSSU markers:\n")
+    cat("\n*** SSU markers ***\n")
     print(x$summary$Num_SSU)
-    cat("\ntRNA markers:\n")
+    cat("\n*** tRNA markers ***\n")
     print(x$summary$Num_tRNAs)
-    cat("\nCall:\t")
+    cat("\n*** User-supplied variables ***\n")
+    print(x$userSource)
+    cat("\n*** Function call history ***\n")
     print(x$call)
 }

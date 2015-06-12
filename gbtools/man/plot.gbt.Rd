@@ -7,8 +7,8 @@
 \method{plot}{gbt}(x, slice = 1, cutoff = 1000, taxon = "Class",
   assemblyName = "", marker = TRUE, marksource = "", gc = FALSE,
   ssu = FALSE, trna = FALSE, consensus = TRUE, legend = FALSE,
-  textlabel = FALSE, col = "grey", log = "default", main = "default",
-  xlab = "default", ylab = "default", ...)
+  textlabel = FALSE, userAxis = NA, col = "grey", log = "default",
+  main = "default", xlab = "default", ylab = "default", ...)
 }
 \arguments{
 \item{x}{Object of class gbt}
@@ -40,6 +40,8 @@ default TRUE)}
 \item{legend}{Draw legend? (logical, default FALSE)}
 
 \item{textlabel}{Label SSU markers with taxon? (logical, default FALSE)}
+
+\item{userAxis}{Use user-custom values for axis. See Details}
 
 \item{col}{Color for points (default "grey")}
 
@@ -74,6 +76,14 @@ Genome bins can be interactively chosen from a gbt plot with the
 \code{\link{choosebin}} function; the same slice argument must be passed
 to the choosebin function as the plot function, otherwise the results will
 be meaningless!
+If you wish to plot by user-supplied custom values (added to gbt object by
+the userAdd() function), indicate which ones to use for x- or y- axis in
+the userAxis= parameter. For example, to plot user-custom data set 1 in X-
+and user-custom data set 2 in Y-axis, specify userAxis=c(1,2). To plot vs.
+GC or coverage values, supply "gc" or "cov" to userAxis, e.g. GC as X-axis
+and user-value set 2 as Y-axis: userAxis=c("gc",2). If "cov" specified, it
+will take the coverage set that is given by the slice= parameter (default
+is the first set of coverage data).
 }
 \seealso{
 \code{\link{gbt}}
