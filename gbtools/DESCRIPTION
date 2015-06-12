@@ -1,0 +1,10 @@
+Package: gbtools
+Type: Package
+Version: 2.1
+Title: Interactive visualization of metagenome assemblies in R
+Date: 2015-06-12
+Author: Brandon Seah
+Maintainer: Brandon Seah <kbseah@mpi-bremen.de>
+Description: gbtools lets you visualize metagenome assemblies by GC-coverage or differential coverage plots, and interactively bin them
+Imports: sp, plyr
+License: GPL-2
