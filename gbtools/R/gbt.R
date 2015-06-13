@@ -20,7 +20,7 @@
 #'
 #' @return Object of class gbt
 #'
-#' @seealso \code{\link{gbtbin}}, \code{link{choosebin}}
+#' @seealso \code{\link{gbtbin}}, \code{\link{choosebin}}
 #'
 #' @export
 gbt <- function(covstats,mark,marksource,ssu,trna) UseMethod ("gbt")

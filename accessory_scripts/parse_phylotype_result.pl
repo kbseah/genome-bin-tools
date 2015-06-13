@@ -3,6 +3,7 @@
 ## Script to parse AMPHORA2 or Phyla-AMPHORA marker phylotyping info to a format that can be imported to R
 ## after the style of Albertsen et al.
 
+## 2015-06-13 - Tidied up formatting and comment lines
 ## Version 2 - 2014-10-27 - Full taxon string parsed for export; no longer extracting only a single taxon level
 ## Version 1 - 2014-10-22
 ## Contact: kbseah@mpi-bremen.de
@@ -11,13 +12,13 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-my $phylotyping_result;             # File with results of AMPHORA2 or Phyla-AMPHORA Phylotyping.pl results
-my %marker_name_hash;               # Hash for gene name, marker ID as key
-my %marker_taxon_hash;              # Hash for taxon (default Class level) from phylotyping result, marker ID as key
-my %marker_scaffold_hash;           # Hash for scaffold containing a given marker gene, marker ID as key
-my $taxon_level=4;                  # Which taxonomic level should we parse the output? 1=Domain, 2=Phylum, 3=Class, 4=Order, 5=Family, 6=Genus, 7=Species
+my $phylotyping_result;   # File with results of AMPHORA2 or Phyla-AMPHORA Phylotyping.pl results
+my %marker_name_hash;     # Hash for gene name, marker ID as key
+my %marker_taxon_hash;    # Hash for taxon (default Class level) from phylotyping result, marker ID as key
+my %marker_scaffold_hash; # Hash for scaffold containing a given marker gene, marker ID as key
+my $taxon_level=4;        # Which taxonomic level should we parse the output? 1=Domain, 2=Phylum, 3=Class, 4=Order, 5=Family, 6=Genus, 7=Species
 
-## MAIN ##########################################################################################################################################
+## MAIN #######################################################################
 
 if (@ARGV == 0) { usage(); }
 
@@ -26,61 +27,86 @@ GetOptions (
     "level|l=i" => \$taxon_level
 );
 
-#if ($taxon_level > 7) { die "Taxon level cannot be lower than species!\n"; }    # Catch smart-asses
+#if ($taxon_level > 7) {    # Catch smart-asses
+#   die "Taxon level cannot be lower than species!\n";
+#}
 #parse_phylotyping_result();
 parse_phylotyping_result_new();
 
-## SUBROUTINES ###################################################################################################################################
+## SUBROUTINES ################################################################
 
 sub usage {
     print STDERR "\n";
-    print STDERR "Parse results from Phyla-AMPHORA or AMPHORA2 Phylotyping.pl script for import to R\n";
+    print STDERR "Parse results from Phyla-Amphora or Amphora2 Phylotyping.pl\n";
+    print STDERR "script for import to R\n";
     print STDERR "\n";
     print STDERR "Usage: \n";
     print STDERR " \$ perl parse_phylotype_result.pl -p <results_file>\n";
     print STDERR "\n";
     print STDERR "Options:\n";
-    print STDERR " \t -p FILE     Results from the script Phylotyping.pl in the AMPHORA2 or Phyla-AMPHORA packages\n";
+    print STDERR " \t -p FILE   Results from the script Phylotyping.pl\n";
     print STDERR "\n";
     print STDERR "Output:\n";
-    print STDERR " \t <results_file>.parsed    Suitable for import to R\n";
+    print STDERR " \t <results_file>.parsed     Suitable for import to gbtools\n";
     print STDERR "\n";
     exit;
 }
 
 sub parse_phylotyping_result_new {
-    open(PHYLOTYPING, "< $phylotyping_result") or die ("Cannot open file $phylotyping_result: $!\n");
+    open(PHYLOTYPING, "< $phylotyping_result")
+        or die ("Cannot open file $phylotyping_result: $!\n");
     my $discardfirstline = <PHYLOTYPING>;   # Throw away header line
-    print STDOUT join("\t", "scaffold", "markerid", "gene", "Superkingdom","Phylum","Class","Order","Family","Genus","Species"), "\n";
+    print STDOUT join("\t",
+                      "scaffold",
+                      "markerid",
+                      "gene",
+                      "Superkingdom",
+                      "Phylum",
+                      "Class",
+                      "Order",
+                      "Family",
+                      "Genus",
+                      "Species"
+                      ),
+                 "\n";
     while (<PHYLOTYPING>) {
         chomp;
         my @currentline= split "\t",$_;
-        my @temparray = split "_", $currentline[0];                      # Splitting and popping to get scaffold name from marker ID, by removing ID number tacked on by getorf
+        ## Splitting and popping to get scaffold name from marker ID, by ######
+        ## removing ID number tacked on by getorf #############################
+        my @temparray = split "_", $currentline[0];
         my $discard = pop @temparray;
-        $marker_scaffold_hash{$currentline[0]} = join "_", @temparray;   # Save scaffold containing marker
+        ## Save scaffold containing marker
+        $marker_scaffold_hash{$currentline[0]} = join "_", @temparray;
         if (scalar @currentline < 9) {
             my $num_to_add = 9 - (scalar @currentline);
             my $last_string;
             ($last_string) = ($currentline[$#currentline] =~ /(.*)\([\d\.]+\)/);
             $last_string = "\(".$last_string."\)";
-            while ($num_to_add > 0) {                                       # Fill in blank taxon levels with the lowest assigned taxon name
+            ## Fill in blank taxon levels with the lowest assigned taxon name #
+            while ($num_to_add > 0) {
                 push @currentline, $last_string;
                 $num_to_add--;
             }
         }
-        for (my $i=2; $i<(scalar @currentline); $i++) {                 # Strip confidence levels from taxon names
+        ## Strip confidence levels from taxon names ###########################
+        for (my $i=2; $i<(scalar @currentline); $i++) {
                 if ($currentline[$i] =~ /(.*)\([\d\.]+\)/) {
                     $currentline[$i] = $1;
                 }
             }
-        print STDOUT join("\t", $marker_scaffold_hash{$currentline[0]}, @currentline), "\n";
+        print STDOUT join("\t",
+                          $marker_scaffold_hash{$currentline[0]},
+                          @currentline),
+                     "\n";
     }    
     close (PHYLOTYPING);
 }
 
 sub parse_phylotyping_result {
     my $cut_level = $taxon_level + 1;
-    open(PHYLOTYPING, "< $phylotyping_result") or die ("Cannot open phylotyping results file: $! \n");
+    open(PHYLOTYPING, "< $phylotyping_result")
+        or die ("Cannot open phylotyping results file: $! \n");
     my $discardheader = <PHYLOTYPING>;
     while (<PHYLOTYPING>) {
         my @currentline = split "\t", $_;
@@ -101,10 +127,25 @@ sub parse_phylotyping_result {
         
     }
     close(PHYLOTYPING);
-    open(PHYLOTYPINGOUT, "> $phylotyping_result\.parsed") or die ("Cannot open $phylotyping_result\.parsed for writing: $!\n"); # Write file containing parsed marker details
-    print PHYLOTYPINGOUT "markerid", "\t", "scaffold", "\t", "gene", "\t", "taxon", "\n";                                       # Header line
+    open(PHYLOTYPINGOUT, "> $phylotyping_result\.parsed")
+        or die ("Cannot open $phylotyping_result\.parsed for writing: $!\n"); # Write file containing parsed marker details
+    print PHYLOTYPINGOUT "markerid",  # Header line
+                         "\t",
+                         "scaffold",
+                         "\t",
+                         "gene",
+                         "\t",
+                         "taxon",
+                         "\n";
     foreach my $currentmarker (keys %marker_name_hash) {
-        print PHYLOTYPINGOUT $currentmarker, "\t", $marker_scaffold_hash{$currentmarker}, "\t", $marker_name_hash{$currentmarker}, "\t", $marker_taxon_hash{$currentmarker}, "\n";
+        print PHYLOTYPINGOUT $currentmarker,
+                             "\t",
+                             $marker_scaffold_hash{$currentmarker},
+                             "\t",
+                             $marker_name_hash{$currentmarker},
+                             "\t",
+                             $marker_taxon_hash{$currentmarker},
+                             "\n";
     }
     close (PHYLOTYPINGOUT);
 }
