@@ -10,6 +10,7 @@
 ##      Bedtools 2.21.0
 
 ## Contact: kbseah@mpi-bremen.de
+## Version 2 - 2015-06-19 - Use Vsearch instead of Usearch, to be able to use latest phyloFlash dbs
 ## Version 1 - 2014-10-27
 ## Version 0 - 2014-10-23
 
@@ -17,7 +18,9 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-my $path_to_ssu_db = "/data/db/phyloFlash/SSURef_NR99_119_for_phyloFlash.udb";      # Path to Usearch database, identical to that used by phyloFlash
+#my $path_to_ssu_db = "/data/db/phyloFlash/SSURef_NR99_119_for_phyloFlash.udb";      # Path to Usearch database, identical to that used by phyloFlash
+my $path_to_ssu_db = "/data/db/phyloFlash_dev/old/phyloFlash_1.5/SSURef_NR99_119_for_phyloFlash.udb";
+my $path_to_ssu_db_vsearch = "/data/db/phyloFlash_dev/phyloFlash/119/SILVA_SSU.noLSU.masked.trimmed.fasta";
 my $cpus = 1;       # How many CPUs to use for parallelization-capable tools
 my $assem_file;     # Assembly (Fasta formatted) to scan for SSU reads
 my $output_prefix;  # Prefix for output files and intermediate files
@@ -28,7 +31,7 @@ my %SSU_assembly;           # Hash to store output from parsing Usearch results
 if (@ARGV == 0 ) { usage(); }
 
 GetOptions (
-    'dbpath|d=s' => \$path_to_ssu_db,
+    'dbpath|d=s' => \$path_to_ssu_db_vsearch,
     'cpus|c=i' => \$cpus,
     'assembly|a=s' => \$assem_file,
     'output|o=s' => \$output_prefix,
@@ -37,7 +40,8 @@ GetOptions (
 
 do_barrnap();
 filter_barrnap_results();
-do_usearch();
+#do_usearch();
+do_vsearch();
 parse_usearch_output();
 
 ## SUBROUTINES #################################################################################################
@@ -50,8 +54,8 @@ sub usage {
     print STDERR " \$ perl get_ssu_for_genome_bin_tools.pl -d <path_to_ssu_db> -c <CPUs> -a <assembly.fasta> -o <output_prefix> \n";
     print STDERR "\n";
     print STDERR "Options: \n";
-    print STDERR " \t -d FILE     Location of SILVA SSU database with taxonomy string, indexed by Usearch\n";
-    print STDERR " \t -c INT      Number of processors for barrnap and Usearch \(default: 1\)\n";
+    print STDERR " \t -d FILE     Location of SILVA SSU database with taxonomy string, indexed by Vsearch\n";
+    print STDERR " \t -c INT      Number of processors for barrnap and Vsearch \(default: 1\)\n";
     print STDERR " \t -a FILE     Genome assembly in Fasta format\n";
     print STDERR " \t -o STRING   Prefix for output files\n";
     print STDERR "\n";
@@ -68,36 +72,18 @@ sub usage {
 sub do_barrnap {
     ## for microbial SSU ######################################################
     foreach ('bac','arc') {
-        my $barrnap_cmd = "barrnap
-                           --kingdom $_
-                           --threads $cpus
-                           --evalue 1e-15
-                           --reject 0.8 $assem_file
-                           | grep '16S_rRNA'
-                           \>\> tmp.$output_prefix.scaffolds.gff";
+        my $barrnap_cmd = "barrnap --kingdom $_ --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '16S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";
         system ($barrnap_cmd) == 0
             or die("Could not run [$barrnap_cmd]: $!\n");
     }
     ## for the euk SSU ########################################################
-        my $barrnap_euk_cmd = "barrnap
-                               --kingdom euk
-                               --threads $cpus
-                               --evalue 1e-15
-                               --reject 0.8 $assem_file
-                               | grep '18S_rRNA'
-                               \>\> tmp.$output_prefix.scaffolds.gff";
+        my $barrnap_euk_cmd = "barrnap --kingdom euk --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '18S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";
         system ($barrnap_euk_cmd) == 0
             or warn("Could not run [$barrnap_euk_cmd]: $!\n");
             # warn instead of die on nonzero exit status because sample may not
             # contain any eukaryotic 18S
     ## for the mitochondrial SSU which is 12S not 16S #########################
-        my $barrnap_mito_cmd = "barrnap
-                                --kingdom mito
-                                --threads $cpus
-                                --evalue 1e-15
-                                --reject 0.8 $assem_file
-                                | grep '12S_rRNA'
-                                \>\> tmp.$output_prefix.scaffolds.gff";
+        my $barrnap_mito_cmd = "barrnap --kingdom mito --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '12S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";
         system ($barrnap_mito_cmd) == 0
             or warn("Could not run [$barrnap_mito_cmd]: $!\n");
             # warn instead of die on nonzero exit status because sample may not
@@ -127,24 +113,19 @@ sub filter_barrnap_results {
 }
 
 sub do_usearch {
-    my $get_fasta_cmd = "fastaFromBed
-                         -fi $assem_file
-                         -bed $output_prefix.barrnap.ssu.gff
-                         -fo $output_prefix.barrnap.ssu.fasta
-                         -s";
+    my $get_fasta_cmd = "fastaFromBed -fi $assem_file -bed $output_prefix.barrnap.ssu.gff -fo $output_prefix.barrnap.ssu.fasta -s";
     system($get_fasta_cmd)==0 or die "Could not run [$get_fasta_cmd] : $! \n";
-    my $usearch_cmd = "usearch -usearch_global
-                       $output_prefix.barrnap.ssu.fasta
-                       -db $path_to_ssu_db -id 0.7
-                       -userout $output_prefix.barrnap.ssu.usearch.out
-                       -userfields query+target+id+alnlen+evalue
-                       -threads $cpus
-                       --strand plus
-                       --notrunclabels
-                       -notmatched $output_prefix.barrnap.ssu.fasta.usearch.notmatched.fasta
-                       -dbmatched $output_prefix.barrnap.ssu.fasta.usearch.dbhits.fasta";
+    my $usearch_cmd = "usearch -usearch_global $output_prefix.barrnap.ssu.fasta -db $path_to_ssu_db -id 0.7 -userout $output_prefix.barrnap.ssu.usearch.out -userfields query+target+id+alnlen+evalue -threads $cpus --strand plus --notrunclabels -notmatched $output_prefix.barrnap.ssu.fasta.usearch.notmatched.fasta -dbmatched $output_prefix.barrnap.ssu.fasta.usearch.dbhits.fasta";
     system($usearch_cmd)==0 or die "Could not run [$usearch_cmd] : $!\n";
 }
+
+sub do_vsearch {
+    my $get_fasta_cmd = "fastaFromBed -fi $assem_file -bed $output_prefix.barrnap.ssu.gff -fo $output_prefix.barrnap.ssu.fasta -s";
+    system($get_fasta_cmd)==0 or die "Could not run [$get_fasta_cmd] : $! \n";
+    my $vsearch_cmd = "vsearch -usearch_global $output_prefix.barrnap.ssu.fasta -db $path_to_ssu_db_vsearch -id 0.7 -userout $output_prefix.barrnap.ssu.usearch.out -userfields query+target+id+alnlen+evalue -threads $cpus --strand plus --notrunclabels -notmatched $output_prefix.barrnap.ssu.fasta.usearch.notmatched.fasta -dbmatched $output_prefix.barrnap.ssu.fasta.usearch.dbhits.fasta";
+    system($vsearch_cmd)==0 or die "Could not run [$vsearch_cmd] : $!\n";
+}
+
 
 sub parse_usearch_output {
     ## Parse the output from Usearch and store in the hash %SSU_assembly ######
