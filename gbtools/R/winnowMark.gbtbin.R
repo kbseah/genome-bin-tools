@@ -8,4 +8,4 @@
 #' @seealso \code{\link{winnow}}, \code{\link{gbt}}
 #' @export
 #'
-winnowMark <- function(x,param,value,save,file) UseMethod("winnowMark")
+winnowMark.gbtbin <- winnowMark.gbt

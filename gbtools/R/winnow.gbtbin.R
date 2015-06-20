@@ -12,4 +12,4 @@
 #' @seealso \code{\link{winnowMark}}, \code{\link{gbt}}
 #' @export
 #'
-winnow <- function (x, gc, len, covmin, covmax, slice, save, file) UseMethod ("winnow")
+winnow.gbtbin <- winnow.gbt  # Inherit behavior of gbt method

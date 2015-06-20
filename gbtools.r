@@ -1,37 +1,14 @@
-#' Take union of two gbtbin objects
-#'
-#' Take union of two gbtbin objects. Equivalent to the R union function
-#'
-#' Self explanatory...
-#' 
-#' @param x1 Object of class gbtbin
-#' @param x2 Object of class gbtbin
-#'
-#' @return Object of class gbtbin
-#'
-#' @seealso \code{\link{lej}}
-#' @export
 add <- function(x1, x2) UseMethod("add")
+
 add.gbtbin <- function(x1,x2) {
 ## Merge two bins; i.e. take their union
     result <- setOperation(x1=x1,x2=x2,shortlist="all")
     result$call[[length(result$call)+1]] <- match.call()  # Record function call 
     return(result)
-}#' Choose bin interactively from plot of gbt object
-#'
-#' Choose genome bin from GC-coverage or differential coverage plot of a
-#' gbt object
-#'
-#' @param x Object of class gbt, used to generate the plot
-#' @param slice The same slice parameter used to generate the plot
-#' @inheritParams pickBinPoints
-#'
-#' @importFrom sp point.in.polygon
-#' @return Object of class gbtbin
-#' @seealso \code{\link{plot.gbt}}
-#' @export
-#'
+}
+
 choosebin <- function(x, ... ) UseMethod ("choosebin")  # Defines generic for choosebin function
+
 choosebin.gbt <- function(x,  # Object of class gbt
                           slice,  # Which slices used for the plot from which points to be chosen?
                           taxon="Class",  # Deprecated - user don't change this
@@ -85,29 +62,15 @@ choosebin.gbt <- function(x,  # Object of class gbt
         return(result)
     }
 }
-#' Tabulate objects and count how many singletons
-#'
-#' @param x Object of class data.frame or vector
-#' @return Numeric vector of length 1
-#' @keywords internal
+
 countSingleFromTable <- function(x) {
     x.tab <- table(x)
     uniq <- length(which(x.tab==1))
     return(uniq)
 }
-#' Perform connectivity fishing with Fastg file
-#'
-#' Find contigs connected to existing gbtbin object, using connectivity from
-#' an external Fastg file
-#'
-#' @param x Object of class gbt, from which the bin object was defined
-#' @param bin Object of class gbtbin, defined from the gbt object x
-#' @param fastg.file Path to Fastg file for the metagenome assembly of x
-#' @param save Logical - Save list of contigs of new bin to external file?
-#' @param file File to save contig list 
-#' @return Object of class gbtbin
-#' @export
+
 fastgFishing <- function(x, bin, fastg.file, ... ) UseMethod ("fastgFishing") 
+
 fastgFishing.gbtbin <- function(x,  # Object of class gbt (parent object of the gbtbin)
                                 bin,  # Object of class gbtbin defined from x
                                 fastg.file,  # Fastg file for assembly of x
@@ -135,30 +98,6 @@ fastgFishing.gbtbin <- function(x,  # Object of class gbt (parent object of the 
     newbin$call[[length(newbin$call)+1]] <- match.call() # Record function call
     return(newbin)
 }
-
-#' Create gbtbin from gbt object
-#'
-#' Creates object of class gbtbin from existing gbt object, representing a
-#' genome bin defined from a metagenome assembly.
-#'
-#' This function is called by \code{\link{choosebin}}, but can be called
-#' directly by the user, given a shortlist of contigs in the bin.
-#'
-#' @param shortlist List of contigs in the new bin (required)
-#' @param x Object of class gbt
-#' @param slice Numeric vector describing which coverage values were used to
-#'               draw the plot from which the bin was selected by choosebin.
-#'               Use NA if not calling this function from choosebin.
-#' @param taxon For internal use
-#' @param points Numeric vector describing points used to select the bin from
-#'                a plot by choosebin. Use NA if not calling this function
-#'                from choosebin.
-#' @param save Save list of contigs to external file? (logical, default FALSE)
-#' @param file File name to save contigs, if save=TRUE.
-#'
-#' @return Object of class gbtbin
-#' @seealso \code{\link{gbt}}, \code{\link{choosebin}}
-#' @export
 gbtbin <- function(shortlist,x,slice,taxon,points,save,file) UseMethod("gbtbin")
 gbtbin.default <- function(shortlist,  # Character vector, contigs to extract from gbt object
                            x,  # Object of class gbt
@@ -256,43 +195,9 @@ gbtbin.default <- function(shortlist,  # Character vector, contigs to extract fr
     class(result) <- "gbtbin"
     return(result)
 }
-#' Interactive visualization of metagenome assemblies in R
-#'
-#' gbtools lets you visualize metagenome assemblies by GC-coverage or 
-#' differential coverage plots, and interactively bin them. 
-#'
-#' See website for more details.
-#'
-#' @references \url{https://github.com/kbseah/genome-bin-tools}
-#' @author Brandon Seah, \email{kbseah@@mpi-bremen.de}
-#' @docType package
-#' @name gbtools
-NULL#' Create new gbt object
-#'
-#' Creates new gbt object from coverage data, taxonomic markers, and other
-#' data
-#'
-#' See documentation online https://github.com/kbseah/genome-bin-tools for
-#' fuller instructions on generating the input files required.
-#'
-#' @param covstats File(s) with coverage statistics of a metagenomic assembly;
-#'                  output of pileup.sh in BBTools package (required). More
-#'                  than one file can be specified with c().
-#' @param mark Table of scaffolds with marker genes and taxonomic information
-#'              for each marker. E.g. AMPHORA2 or Phyla-AMPHORA marker sets
-#'              and output parsed by parse_phylotype_result.pl. (optional)
-#' @param ssu Table of scaffolds with SSU rRNA genes, and taxonomic info
-#'             for each SSU. E.g. use get_ssu_for_genome_bin_tools.pl.
-#'             (optional)
-#' @param tnra Table of tRNA genes found in assembly. Can use the output from
-#'              tRNAscan-SE directly. (optional)
-#'
-#' @return Object of class gbt
-#'
-#' @seealso \code{\link{gbtbin}}, \code{link{choosebin}}
-#'
-#' @export
+
 gbt <- function(covstats,mark,marksource,ssu,trna) UseMethod ("gbt")
+
 gbt.default <- function (covstats,  # Vector of filenames for coverage tables 
                          mark=NA,   # Vector of filenames for marker gene taxonomy tables
                          marksource=NA,  # Vector of source names for each marker gene table
@@ -363,7 +268,10 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
                 markTab <- NA
             }
         } else {
-            cat ("gbtools WARNING: marksource not supplied.\n")
+            cat ("gbtools WARNING: marksource not supplied. Any marker tables supplied ignored \n")
+            marksource <- NA
+            numMarks <- NA
+            markTab <- NA
         }
         
         ## Read SSU marker table ##############################################
@@ -396,13 +304,16 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
         }
         
         ## Generate summary statistics #######################################
+        if (!is.na(markTab)[1]) {
+            Num_markers <- table(markTab$source)
+        } else { Num_markers <- NA }
         summarystats <- list(Total_length=sum(scaff$Length),
                              Num_scaffolds=length(scaff$ID),
                              Scaff_length_max=max(scaff$Length),
                              Scaff_length_min=min(scaff$Length),
                              Scaff_length_median=median(scaff$Length),
                              Scaff_length_N50=getN50(scaff$Length),
-                             Num_markers=table(markTab$source),
+                             Num_markers=Num_markers,
                              Num_SSU=numSsu,
                              Num_tRNAs=numTrna)
         
@@ -423,15 +334,8 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
         class(result) <- "gbt"
         result
     }    
-}#' Generates colors for plot legends when coloring by markers
-#'
-#' @param scaffold.stats scaff data.frame from a gbt object
-#' @param marker.list List of markers from markTab data.frame of gbt object
-#' @param taxon Taxon names for which to generate colors
-#' @param consensus If scaffold has more than one marker, take majority-rule
-#'                    consensus taxonomic assignment? (logical)
-#' @return data.frame with color assignments for each scaffold
-#' @keywords internal 
+}
+
 generateLegendColors <- function(scaffold.stats,  # Same params as generatePlotColors()
                                  marker.list,
                                  taxon,
@@ -473,12 +377,8 @@ generateLegendColors <- function(scaffold.stats,  # Same params as generatePlotC
                           colorframe,
                           by="taxon")
     return(colorframe)
-}#' Generates colors for marker gene phylotypes in plot
-#'
-#' @inheritParams generateLegendColors
-#' @return data.frame with color assignments for each scaffold
-#' @keywords internal
-#'
+}
+
 generatePlotColors <- function(scaffold.stats,  # scaff table from gbt object
                                marker.list,  # markTab table from gbt object
                                taxon,  # Taxonomic level to do the coloring
@@ -527,30 +427,18 @@ generatePlotColors <- function(scaffold.stats,  # scaff table from gbt object
                           colorframe,
                           by="taxon")
     return(marker.stats)
-}#' Calculate N50 from contig lengths
-#'
-#' @param x Numeric vector
-#' @return N50 value - min contig length that contains half of total bases
-#' @keywords internal
+}
+
 getN50 <- function(x) {
     # Adapted from R-bloggers:
     # http://www.r-bloggers.com/calculating-an-n50-from-velvet-output/
     x.sort <- sort(x,decreasing=TRUE)
     n50 <- x[cumsum(x.sort) >= sum(x.sort)/2][1]
     return(n50)
-}#' Take difference between two gbtbin objects
-#'
-#' Takes the reverse complement of two gbtbin objects. Equivalent to setdiff
-#' in R, or left-exclusive-join in SQL. Non commutative!
-#'
-#' Self explanatory...
-#'
-#' @inheritParams add
-#'
-#' @seealso \code{\link{add}}
-#'
-#' @export
+}
+
 lej <- function(x1, x2) UseMethod ("lej")
+
 lej.gbtbin <- function(x1,x2) {
 ## Take difference between two bins - non commutative! i.e. left exclusive join
     shortlist <- x1$scaff$ID[which(!x1$scaff$ID %in% x2$scaff$ID)]
@@ -560,17 +448,7 @@ lej.gbtbin <- function(x1,x2) {
     result$call[[length(result$call)+1]] <- match.call()  # Record function call 
     return(result)
 }
-#' Merge scaffolds table with marker table
-#'
-#' Merge table of scaffold statistics (output from pileup.sh in BBMap package)
-#' and table of marker statistics parsed by parse_phylotype_result.pl
-#'
-#' @inheritParams generateLegendColors
-#'
-#' @return data.frame with marker data and scaffold statistics
-#' @keywords internal
-#' @importFrom plyr ddply
-#'
+
 mergeScaffMarker <- function(scaffold.stats,marker.list,taxon,consensus=TRUE) {
 ## Merge table of scaffold statistics (output from pileup.sh in BBMap package)
 ## and table of marker statistics parsed by parse_phylotype_result.pl
@@ -597,18 +475,8 @@ mergeScaffMarker <- function(scaffold.stats,marker.list,taxon,consensus=TRUE) {
                               by.y="scaffold")
     }
     return(marker.stats)
-}#' Define polygon for genome bin on plot
-#' 
-#' Wrapper for locator() and polygon() to perform interactive binning on the
-#' current plot. Returns the polygon vertices which can be used in
-#' get.bin.stats()
-#'
-#' @param num.points Number of points in polygon (integer)
-#' @param draw.polygon Draw polygon as overlay on plot (logical)
-#'
-#' @return numerical vector containing polygon vertices coordinates
-#' @keywords internal
-#'
+}
+
 pickBinPoints <- function(num.points=6,  # How many points in polygon?
                           draw.polygon=TRUE  # Overlay polygon on plot?
                           ) {
@@ -617,63 +485,8 @@ pickBinPoints <- function(num.points=6,  # How many points in polygon?
     thepoints <- locator(num.points,pch=20,type="p")
     if (draw.polygon) { polygon(thepoints) }
     return(thepoints)
-}#' Plot object of class gbt
-#'
-#' Plot GC-coverage or differential coverage plots from a gbt object
-#'
-#' The plot method for gbt objects can produce both GC-coverage and
-#' differential coverage plots. A gbt object contains scaffold data and
-#' annotations for a given metagenome, along with the coverage of each
-#' scaffold for one or more samples. To plot GC-coverage plots, the sample
-#' to use for the coverage data is specified by giving the number of the
-#' sample to the slice parameter. To plot differential-coverage plots, the
-#' numbers of the two samples for comparison are given to slice as a vector
-#' e.g. c(1,2). The first sample is plotted as the x-axis and the second as
-#' the y-axis. Supplying a vector with more than 2 elements, or a non-
-#' numeric value will return an error.
-#' Genome bins can be interactively chosen from a gbt plot with the
-#' \code{\link{choosebin}} function; the same slice argument must be passed
-#' to the choosebin function as the plot function, otherwise the results will
-#' be meaningless!
-#' If you wish to plot by user-supplied custom values (added to gbt object by
-#' the userAdd() function), indicate which ones to use for x- or y- axis in
-#' the userAxis= parameter. For example, to plot user-custom data set 1 in X-
-#' and user-custom data set 2 in Y-axis, specify userAxis=c(1,2). To plot vs.
-#' GC or coverage values, supply "gc" or "cov" to userAxis, e.g. GC as X-axis
-#' and user-value set 2 as Y-axis: userAxis=c("gc",2). If "cov" specified, it
-#' will take the coverage set that is given by the slice= parameter (default
-#' is the first set of coverage data).
-#' 
-#' @param x Object of class gbt
-#' @param slice For plotting coverage data, which sample to use? (see
-#'               Details section below)
-#' @param cutoff Minimum length to plot contigs (numeric, default 1000)
-#' @param taxon Taxonomic level for coloring the taxonomic markers, e.g.
-#'               "Class" or "Phylum". (default "Class")
-#' @param assemblyName Name of the metagenome, for plot title
-#' @param marker Color plot by taxon markers? (logical, default TRUE)
-#' @param gc Color plot by GC% instead of taxon markers? Only used for
-#'            differential coverage plots, i.e. when two values are supplied
-#'            to the slice parameter. (logical, default FALSE)
-#' @param userAxis Use user-custom values for axis. See Details
-#' @param ssu Draw markers for SSU genes? (logical, default FALSE)
-#' @param trna Draw markers for tRNA genes? (logical, default FALSE)
-#' @param consensus For contigs with more than one marker gene with conflict
-#'                   in taxonomy, take majority rule consensus? (logical,
-#'                   default TRUE)
-#' @param legend Draw legend? (logical, default FALSE)
-#' @param textlabel Label SSU markers with taxon? (logical, default FALSE)
-#' @param col Color for points (default "grey")
-#' @param log Which axes should be logarithmic scale
-#' @param main Custom label for plot title
-#' @param xlab Custom label for x-axis label
-#' @param ylab Custom label for y-axis label
-#' @param ... See par for more plot options
-#'
-#' @return New graphics object and plot, or error message
-#' @export
-#' @seealso \code{\link{gbt}}
-#'
+}
+
 plot.gbt <- function(x,  # Object of class gbt
                      slice=1,  # Which coverage values to plot?
                      cutoff=1000,  # Minimum contig length to plot
@@ -983,18 +796,8 @@ plot.gbtbin <- function(x, slice="default", ...) {
     else {
         plot.gbt (x=x, slice=slice, ...) 
     }
-}#' Add points to plot of gbt or gbtbin object
-#'
-#' Add points to GC-coverage or differential coverage plots from a gbt object
-#'
-#' See \code{\link{plot.gbt}} for more details on gbt plots.
-#'
-#' @inheritParams plot.gbt
-#' @param slice
-#'
-#' @seealso \code{\link{plot.gbt}}, \code{\link{plot.gbtbin}}
-#' @export
-#'
+}
+
 points.gbtbin <- function(x,  # Object of class gbtbin
                           col="black",  # Overlay plot points color
                           slice="default",  # Which slice to use for plotting?
@@ -1047,12 +850,8 @@ points.gbtbin <- function(x,  # Object of class gbtbin
     }
     ## Throw error message for invalid slice options ################################
     else { cat ("gbtools ERROR: Please specify valid value for slice option for this bin\n")}
-}#' Print summary of gbt objectbin
-#'
-#' @param x Object of class gbtbin
-#' @return data.frame summarizing contents of x
-#' @seealso \code{\link{gbtbin}}, \code{\link{summary.gbtbin}}
-#' @export
+}
+
 print.gbtbin <- function(x) {
     cat("*** Object of class gbtbin ***\n")
     cat ("\n*** Scaffolds ***\n")
@@ -1080,12 +879,7 @@ print.gbtbin <- function(x) {
     cat("\n*** Function call history ***\n")
     print(x$call)
 }
-#' Print summary of gbt object
-#'
-#' @param x Object of class gbt
-#' @return data.frame summarizing contents of x
-#' @seealso \code{\link{gbt}}, \code{\link{summary.gbt}}
-#' @export
+
 print.gbt <- function(x) {
     cat("*** Object of class gbt ***\n")
     cat("\n*** Scaffolds ***\n")
@@ -1107,15 +901,10 @@ print.gbt <- function(x) {
     print(x$userSource)
     cat("\n*** Function call history ***\n")
     print(x$call)
-}#' Generic operation for merging and subsetting two gbtbin objects
-#' 
-#' @param x1 Object of class gbtbin
-#' @param x2 Object of class gbtbin
-#' @param shortlist Vector of contig IDs to make new bin
-#' @return Object of class gbtbin
-#' @keywords internal
+}
 
 setOperation <- function(x1, x2, shortlist) UseMethod("setOperation")
+
 setOperation.gbtbin <- function(x1,x2,shortlist) {
 ## Generic operation for merging and subsetting two gbtbin objects
     ## Merge the two scaff tables ##################################################
@@ -1195,16 +984,8 @@ setOperation.gbtbin <- function(x1,x2,shortlist) {
                     slice=NA)
     class(result) <- "gbtbin"
     return(result)
-}#' Print summary of gbtbin object
-#'
-#' For a gbtbin object, summary() differs from print() in displaying more
-#' information: if available, table of counts per marker gene (for each marker
-#' source), and table of counts per tRNA type.
-#'
-#' @param x Object of class gbtbin
-#' @return data.frame summarizing contents of x
-#' @seealso \code{\link{gbtbin}}, \code{\link{print.gbtbin}}
-#' @export
+}
+
 summary.gbtbin <- function (x) {
     print(x)  # Print the standard summary
     ## Show the marker tables
@@ -1214,28 +995,12 @@ summary.gbtbin <- function (x) {
     print(x$marker.table)
     cat ("\n*** Table of tRNA genes ***\n")
     print(x$tRNA.table)
-}#' Print summary of gbt object
-#'
-#' @param x Object of class gbt
-#' @return data.frame summarizing contents of x
-#' @seealso \code{\link{gbt}}, \code{\link{print.gbt}}
-#' @export
+}
+
 summary.gbt <- print.gbt  # Identical to "print" behavior
-#' Add custom user annotations to gbt object
-#'
-#' Custom user annotations for each scaffold can be added to existing gbt
-#' objects. The annotations should be in a data.frame, with at least column
-#' "scaffold" that matches scaffold IDs in the gbt object. Pass the name of the
-#' data.frame to the userTab parameter. Give a unique name for this annotation
-#' to the userSource parameter.
-#'
-#' @param x Object of class gbt
-#' @param userTab data.frame with user annotations, see Details
-#' @param userSource Name for this annotation table
-#' @return Object of class gbt
-#' @seealso \code{\link{gbt}} \code{\link{plot.gbt}}
-#' @export
+
 userAdd <- function(x,userTab,userSource) UseMethod("userAdd")
+
 userAdd.gbt <- function(x,
                         userTab,
                         userSource=NA
@@ -1258,51 +1023,10 @@ userAdd.gbt <- function(x,
             return(x)  # Return result
         }
     }
-}#' Subset a gbt or gbtbin object by marker gene taxonomy
-#'
-#' @param param Taxonomic level to make subset (default "Class")
-#' @param value Value of the taxon to make subset (default
-#'               "Gammaproteobacteria")
-#' @inheritParams winnow
-#' @return Object of class gbtbin
-#' @seealso \code{\link{winnow}}, \code{\link{gbt}}
-#' @export
-#'
-winnowMark <- function(x,param,value,save,file) UseMethod("winnowMark")
-winnowMark.gbt <- function(x,  # Object of class gbt
-                           param="Class",  # Which taxonomic level to choose?
-                           value="Gammaproteobacteria",  # Which taxon to choose?
-                           save=FALSE,  # Save list of contigs to external file?
-                           file="bin_scaffolds.list"  # File to save list of contigs
-                           ) {
-## Winnow a gbt object by its marker table values
-    scafflist <- as.character(x$markTab$scaffold[which(x$markTab[,which(names(x$markTab)
-                                                                        ==param)]
-                                                       ==value)])
-    bin <- gbtbin (shortlist=scafflist,
-                   x=x,
-                   points=NA,
-                   slice=NA,
-                   save=save,
-                   file=file)
-    bin$call[[length(bin$call)+1]] <- match.call()  # Record function call
-    return(bin)
 }
-winnowMark.gbtbin <- winnowMark.gbt#' Subset a gbt or gbtbin object by GC, length, or coverage cutoffs
-#'
-#' @param x Object of class gbt or gbtbin
-#' @param gc Vector giving min and max GC values (default c(0,Inf))
-#' @param len Vector giving min and max contig lengths (default c(0,Inf))
-#' @param covmin Vector giving minimum coverage values per sample (default NA)
-#' @param covmax Vector giving maximum coverage values per sample (default NA)
-#' @param slice Vector of sample numbers for the coverage cutoffs (default NA)
-#' @param save Save list of contigs to external file? (logical, defautl FALSE)
-#' @param file File name for export of contig list.
-#' @return Object of class gbtbin
-#' @seealso \code{\link{winnowMark}}, \code{\link{gbt}}
-#' @export
-#'
+
 winnow <- function (x, gc, len, covmin, covmax, slice, save, file) UseMethod ("winnow")
+
 winnow.gbt <- function (x,
                         gc=c(0,1),
                         len=c(0,Inf),
@@ -1347,4 +1071,29 @@ winnow.gbt <- function (x,
     bin$call[[length(bin$call)+1]] <- match.call()  # Record function call 
     return(bin)
 }
+
 winnow.gbtbin <- winnow.gbt  # Inherit behavior of gbt method
+
+winnowMark <- function(x,param,value,save,file) UseMethod("winnowMark")
+
+winnowMark.gbt <- function(x,  # Object of class gbt
+                           param="Class",  # Which taxonomic level to choose?
+                           value="Gammaproteobacteria",  # Which taxon to choose?
+                           save=FALSE,  # Save list of contigs to external file?
+                           file="bin_scaffolds.list"  # File to save list of contigs
+                           ) {
+## Winnow a gbt object by its marker table values
+    scafflist <- as.character(x$markTab$scaffold[which(x$markTab[,which(names(x$markTab)
+                                                                        ==param)]
+                                                       ==value)])
+    bin <- gbtbin (shortlist=scafflist,
+                   x=x,
+                   points=NA,
+                   slice=NA,
+                   save=save,
+                   file=file)
+    bin$call[[length(bin$call)+1]] <- match.call()  # Record function call
+    return(bin)
+}
+
+winnowMark.gbtbin <- winnowMark.gbt
