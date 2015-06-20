@@ -74,7 +74,7 @@ sub do_barrnap {
     foreach ('bac','arc') {
         my $barrnap_cmd = "barrnap --kingdom $_ --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '16S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";
         system ($barrnap_cmd) == 0
-            or die("Could not run [$barrnap_cmd]: $!\n");
+            or warn("Could not run [$barrnap_cmd]: $!\n");
     }
     ## for the euk SSU ########################################################
         my $barrnap_euk_cmd = "barrnap --kingdom euk --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '18S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";

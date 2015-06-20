@@ -8,7 +8,7 @@ Assuming you already have metagenomes assembled, coverage calculated by mapping,
 
  * Download the latest release of gbtools
  * Install package dependencies in R (`sp` and `plyr` packages)
- * Install `gbtools` package in R
+ * Install `gbtools` package in R (look in the `R_source_package` folder in this repository)
  * Format input data, and check with `input_validator.pl` (in the `accessory_scripts` folder)
  * Load your data into R: `A <- gbt(covstats=c("coverage_file1.tab","coverage_file2.tab"),mark="taxonomic_markers.tab",marksource="source",ssu="ssu_markers.tab",trna="trna_markers.tab")`
  * Plot GC-coverage plots: `plot(A, slice=1)`
@@ -29,7 +29,7 @@ Problems with input file formats? Read [the appendix](Appendix.\ Input\ file\ fo
 
 Cite: Brandon Seah (2015), genome-bin-tools, Online: https://github.com/kbseah/genome-bin-tools
 
-or via Zenodo: [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18530.svg)](http://dx.doi.org/10.5281/zenodo.18530)
+or via Zenodo: [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18785.svg)](http://dx.doi.org/10.5281/zenodo.18785)
 
 Cite dependencies if you use them:
 * **R** -  R Core Team. 2014. R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. (http://www.R-project.org/)
@@ -37,6 +37,7 @@ Cite dependencies if you use them:
 * **AMPHORA2** - Wu M, Scott AJ. 2012. Bioinformatics 28 (7) : 1033-1034.
 * **barrnap** - Seemann T. 2014. barrnap (http://www.vicbioinformatics.com/software.barrnap.shtml)
 * **Usearch** - Edgar RC 2010. Bioinformatics 26 (19) : 2460-2461.
+* **Vsearch** - https://github.com/torognes/vsearch
 * **ARB-SILVA** - Quast C et al. 2013. Nucleic Acids Research 41 (D1) : D590-D596.
 * **tRNAscan-SE** - Lowe T, Eddy S. 1997. Nucleic Acids Research 25 : 955-964.
 * **Blobology** - Kumar S et al. 2013. Frontiers in Genetics 4 : 237
