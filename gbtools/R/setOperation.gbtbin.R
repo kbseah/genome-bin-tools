@@ -37,6 +37,7 @@ setOperation.gbtbin <- function(x1,x2,shortlist) {
     if (is.data.frame(x1$markTab) && is.data.frame(x2$markTab)) {
         if (dim(x1$markTab)[1] > 0 || dim(x2$markTab)[1] > 0) { 
             markTab.add <- unique (rbind(x1$markTab,x2$markTab))
+            markTab.add <- subset(markTab.add, scaffold %in% shortlist)
             for (j in 1:length(marksource)) {
                 markTab.subsubset <- subset(markTab.add,source==marksource[j])
                 bin.nummarkers[j] <- dim(markTab.subsubset)[1]
@@ -51,6 +52,7 @@ setOperation.gbtbin <- function(x1,x2,shortlist) {
     if (is.data.frame(x1$ssuTab) && is.data.frame(x2$ssuTab)) {
         if ( dim(x1$ssuTab)[1]>0 || dim(x2$ssuTab)[1]>0 ) {
             ssuTab.add <- unique (rbind(x1$ssuTab,x2$ssuTab))
+            ssuTab.add <-subset(ssuTab.add, scaffold %in% shortlist)
             bin.numSSUs <- dim(ssuTab.add)[1]
         }
     }
@@ -59,6 +61,7 @@ setOperation.gbtbin <- function(x1,x2,shortlist) {
     if (is.data.frame(x1$trnaTab) && is.data.frame(x2$trnaTab)) {
         if ( dim(x1$trnaTab)[1] > 0 || dim(x2$trnaTab)[1] > 0 ) {
             trnaTab.add <- unique (rbind(x1$trnaTab,x2$trnaTab))
+            trnaTab.add <- subset(trnaTab.add, scaffold %in% shortlist)
             bin.numtRNAs <- dim(trnaTab.add)[1]
             tRNAs.tab <- table(trnaTab.add$tRNA_type)
             bin.uniqtRNAs <- length(which(tRNAs.tab > 0))
