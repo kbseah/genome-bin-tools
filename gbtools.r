@@ -932,27 +932,39 @@ setOperation.gbtbin <- function(x1,x2,shortlist) {
     marker.tab <- list()  # Make empty list object (NA will throw error later)
     tRNAs.tab <- NA
     ## Combine marker tables #######################################################
-    if (!is.na(x1$markTab) || !is.na(x2$markTab)) {
-        markTab.add <- unique (rbind(x1$markTab,x2$markTab))
-        for (j in 1:length(marksource)) {
-            markTab.subsubset <- subset(markTab.add,source==marksource[j])
-            bin.nummarkers[j] <- dim(markTab.subsubset)[1]
-            marker.tab[[j]] <- table(markTab.subsubset$gene)
-            bin.uniqmarkers[j] <- length(which(marker.tab[[j]] > 0))
-            bin.singlemarkers[j] <- length(which(marker.tab[[j]] ==1))
+    #if (!is.na(x1$markTab) || !is.na(x2$markTab)) {
+    if (is.data.frame(x1$markTab) && is.data.frame(x2$markTab)) {
+        if (dim(x1$markTab)[1] > 0 || dim(x2$markTab)[1] > 0) { 
+            markTab.add <- unique (rbind(x1$markTab,x2$markTab))
+            markTab.add <- subset(markTab.add, scaffold %in% shortlist)
+            for (j in 1:length(marksource)) {
+                markTab.subsubset <- subset(markTab.add,source==marksource[j])
+                bin.nummarkers[j] <- dim(markTab.subsubset)[1]
+                marker.tab[[j]] <- table(markTab.subsubset$gene)
+                bin.uniqmarkers[j] <- length(which(marker.tab[[j]] > 0))
+                bin.singlemarkers[j] <- length(which(marker.tab[[j]] ==1))
+            }
         }
     }
     ## Combine SSU Tables ##########################################################
-    if (!is.na(x1$ssuTab) || !is.na(x2$ssuTab)) {
-        ssuTab.add <- unique (rbind(x1$ssuTab,x2$ssuTab))
-        bin.numSSUs <- dim(ssuTab.add)[1]
+    #if (!is.na(x1$ssuTab) || !is.na(x2$ssuTab)) {
+    if (is.data.frame(x1$ssuTab) && is.data.frame(x2$ssuTab)) {
+        if ( dim(x1$ssuTab)[1]>0 || dim(x2$ssuTab)[1]>0 ) {
+            ssuTab.add <- unique (rbind(x1$ssuTab,x2$ssuTab))
+            ssuTab.add <-subset(ssuTab.add, scaffold %in% shortlist)
+            bin.numSSUs <- dim(ssuTab.add)[1]
+        }
     }
     ## Combine trna Tables #########################################################
-    if (!is.na(x1$trnaTab) || !is.na(x2$trnaTab)) {
-        trnaTab.add <- unique (rbind(x1$trnaTab,x2$trnaTab))
-        bin.numtRNAs <- dim(trnaTab.add)[1]
-        tRNAs.tab <- table(trnaTab.add$tRNA_type)
-        bin.uniqtRNAs <- length(which(tRNAs.tab > 0))
+    #if (!is.na(x1$trnaTab) || !is.na(x2$trnaTab)) {
+    if (is.data.frame(x1$trnaTab) && is.data.frame(x2$trnaTab)) {
+        if ( dim(x1$trnaTab)[1] > 0 || dim(x2$trnaTab)[1] > 0 ) {
+            trnaTab.add <- unique (rbind(x1$trnaTab,x2$trnaTab))
+            trnaTab.add <- subset(trnaTab.add, scaffold %in% shortlist)
+            bin.numtRNAs <- dim(trnaTab.add)[1]
+            tRNAs.tab <- table(trnaTab.add$tRNA_type)
+            bin.uniqtRNAs <- length(which(tRNAs.tab > 0))
+        }
     }
     ## Summary statistics ##########################################################
     bin.length <- sum(scaff.add$Length)
@@ -1097,3 +1109,91 @@ winnowMark.gbt <- function(x,  # Object of class gbt
 }
 
 winnowMark.gbtbin <- winnowMark.gbt
+
+importBins <- function(x, # Object of class gbt
+                       file # File with table of bins (1st col) and contig names (2nd col)
+                       ) {
+    thetab <- read.table(file=file, sep="\t",header=F)
+    names(thetab) <- c("bin","contig")
+    binsvector <- as.vector(levels(thetab$bin))
+    # Create a dummy function assignfunc() because assign() works by side-effect!
+    assignfunc <- function(y) assign(as.character(binsvector[y]),
+                                     gbtbin.default(shortlist=as.vector(thetab$contig[which(thetab$bin==binsvector[y])]),
+                                                    x=x,
+                                                    slice=1
+                                                    ),
+                                     env=.GlobalEnv
+                                     )
+    for (i in 1:length(binsvector)) {
+        assignfunc(i)
+    }
+}
+
+multiBinPlot <- function (x, # Object of class gbt
+                          bins, # List of gbtbin objects (must use list() instead of c() !!)
+                          binNames="", # Vector of names for each bin
+                          legend=FALSE, # Logical - plot legend identifying each bin?
+                          slice=1, # which slice to use for plotting (default = 1)
+                          assemblyName="", # Name of assembly, for plot header
+                          cutoff=0, # Length cutoff for plotting
+                          cols=NULL, # User-specified palette
+                          log="default",  # Log scale for axis?
+                          main="default",  # Custom title for plot
+                          xlab="default",  # Custom x-axis label for plot
+                          ylab="default",  # Custom y-axis label for plot
+                          xlim=NULL, # Default xlim and ylim are automatic, but user can override
+                          ylim=NULL
+                          ) {
+    # Check if user-supplied palette matches no. of bins, else use default rainbow palette
+    if (length(cols) != length(bins)) {
+        cat ("\nUsing default rainbow palette...\n")
+        cols <- rainbow (length(bins))
+    }
+    # Check if bin names match number of bins, else ignore legend plotting
+    if (legend==TRUE && binNames == "") {
+        cat ("\nNo names for bins supplied, using sequential numbers...\n")
+        # Sequentially name the bins "bin 1, bin 2, ..." if no custom names supplied
+        binNames <- 1:length(bins)
+        binNames <- sapply(binNames, function(x) paste("bin",x))
+    }
+    else if (legend==TRUE && length(binNames) != length(bins)) {
+        cat ("\nNumber of bin names doesn't match number of bins supplied, ignoring legend...\n")
+        legend <- FALSE
+    }
+    # Check that gbt object is really a gbt object, else abandon plotting
+    if (class(x) != "gbt") {
+        cat ("\nObject ")
+        print (as.character (x))
+        cat (" is not a gbt object!\n")
+    }
+    else {
+        plot.gbt(x,
+                 slice=slice, # Inherit user-specified options
+                 assemblyName=assemblyName,
+                 cutoff=cutoff,
+                 log=log,main=main,xlab=xlab,ylab=ylab,
+                 xlim=xlim,ylim=ylim,
+                 col="grey",
+                 marker=F,gc=F,ssu=F,trna=F # Turn off plot annotations
+                 )
+        for (i in 1:length(bins)) {
+            if (class(bins[[i]]) != "gbtbin") {
+                cat ("\nObject number ")
+                print(as.character(i))
+                cat (" is not a gbtbin object!\n")
+            }
+            else {
+                points.gbtbin(x=bins[[i]],
+                              col=cols[i],
+                              slice=slice,
+                              cutoff=cutoff)
+            }
+        }
+        if (legend==TRUE) {
+            legend(x="topright",
+                   legend=binNames,
+                   fill=cols
+                   )
+        }
+    }
+}
