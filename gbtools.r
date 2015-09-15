@@ -780,23 +780,7 @@ plot.gbt <- function(x,  # Object of class gbt
     }
 }
 
-plot.gbtbin <- function(x, slice="default", ...) {
-    ## Defaults to same slice used to choose the bin ##########################
-    if (slice == "default") { 
-        slice <- x$slice
-    }
-    ## Catch invalid slice values #############################################
-    if (is.na(x$slice)
-        || !is.numeric(x$slice)
-        || length(x$slice) > 2) { 
-        cat ("gbtools ERROR: Please specify valid value for slice option for
-             this bin\n")
-    }
-    ## Else inherit same plot method as gbt class, for simplicty's sake #######
-    else {
-        plot.gbt (x=x, slice=slice, ...) 
-    }
-}
+plot.gbtbin <- plot.gbt # Inherit plot.gbt function
 
 points.gbtbin <- function(x,  # Object of class gbtbin
                           col="black",  # Overlay plot points color
@@ -1160,11 +1144,11 @@ multiBinPlot <- function (x, # Object of class gbt
         cat ("\nNumber of bin names doesn't match number of bins supplied, ignoring legend...\n")
         legend <- FALSE
     }
-    # Check that gbt object is really a gbt object, else abandon plotting
-    if (class(x) != "gbt") {
+    # Check that gbt object is really a gbt or gbtbin object, else abandon plotting
+    if (class(x) != "gbt" && class(x) != "gbtbin") {
         cat ("\nObject ")
-        print (as.character (x))
-        cat (" is not a gbt object!\n")
+        print (deparse(substitute(x)))
+        cat (" is not a gbt or gbtbin object!\n")
     }
     else {
         plot.gbt(x,

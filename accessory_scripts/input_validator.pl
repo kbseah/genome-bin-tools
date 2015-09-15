@@ -125,7 +125,7 @@ sub check_covstats {
                             "Avg_fold",
                             "Length",
                             "Ref_GC");
-    open(IN, "<", $infile) or die ("$1\n");
+    open(IN, "<", $infile) or die ("Cannot open file $infile: $!\n");
     ## Check the first line for comment character at beginning of line ########
     my $firstline = <IN>;
     $linecount++;
@@ -222,7 +222,7 @@ sub check_mark { # Also works for SSU tables
         open(OUT, ">", $outfile) or die ("$!\n");
     }
     ## Open input file ########################################################
-    open(IN, "<", $infile) or die ("$!\n");
+    open(IN, "<", $infile) or die ("Cannot open file $infile: $!\n");
     ## Check that firstline is a valid header #################################
     my $firstline = <IN>;
     $linecount++;
@@ -282,7 +282,7 @@ sub check_trna {
     my $fatalerr=0;
     my $linecount=0;
     my $header;
-    open(IN, "<", $infile) or die ("$!\n");
+    open(IN, "<", $infile) or die ("Cannot open file $infile: $!\n");
     ## Skip the first three lines (header)
     for (my $i=1; $i<=3; $i++) {
         $linecount++;

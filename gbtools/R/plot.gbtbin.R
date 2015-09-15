@@ -1,4 +1,4 @@
-#' Plot object of class gbt
+#' Plot object of class gbtbin
 #'
 #' Plot GC-coverage or differential coverage plots from a gbt object
 #'
@@ -25,7 +25,7 @@
 #' will take the coverage set that is given by the slice= parameter (default
 #' is the first set of coverage data).
 #' 
-#' @param x Object of class gbt
+#' @param x Object of class gbtbin
 #' @param slice For plotting coverage data, which sample to use? (see
 #'               Details section below)
 #' @param cutoff Minimum length to plot contigs (numeric, default 1000)
@@ -55,7 +55,7 @@
 #' @export
 #' @seealso \code{\link{gbt}}
 #'
-plot.gbt <- function(x,  # Object of class gbt
+plot.gbtbin <- function(x,  # Object of class gbtbin
                      slice=1,  # Which coverage values to plot?
                      cutoff=1000,  # Minimum contig length to plot
                      taxon="Class",  # Taxonomic level for coloring markers

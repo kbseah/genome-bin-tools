@@ -70,11 +70,11 @@ multiBinPlot <- function (x, # Object of class gbt
         cat ("\nNumber of bin names doesn't match number of bins supplied, ignoring legend...\n")
         legend <- FALSE
     }
-    # Check that gbt object is really a gbt object, else abandon plotting
-    if (class(x) != "gbt") {
+    # Check that gbt object is really a gbt or gbtbin object, else abandon plotting
+    if (class(x) != "gbt" && class(x) != "gbtbin") {
         cat ("\nObject ")
-        print (as.character (x))
-        cat (" is not a gbt object!\n")
+        print (deparse(substitute(x)))
+        cat (" is not a gbt or gbtbin object!\n")
     }
     else {
         plot.gbt(x,
