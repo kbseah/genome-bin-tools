@@ -69,6 +69,7 @@ countSingleFromTable <- function(x) {
     return(uniq)
 }
 
+
 fastgFishing <- function(x, bin, fastg.file, ... ) UseMethod ("fastgFishing") 
 
 fastgFishing.gbtbin <- function(x,  # Object of class gbt (parent object of the gbtbin)
@@ -1070,18 +1071,22 @@ winnow.gbt <- function (x,
 
 winnow.gbtbin <- winnow.gbt  # Inherit behavior of gbt method
 
-winnowMark <- function(x,param,value,save,file) UseMethod("winnowMark")
+winnowMark <- function(x,marksource,param,value,save,file) UseMethod("winnowMark")
 
 winnowMark.gbt <- function(x,  # Object of class gbt
+                           marksource=NA, # Which marker set to use
                            param="Class",  # Which taxonomic level to choose?
                            value="Gammaproteobacteria",  # Which taxon to choose?
                            save=FALSE,  # Save list of contigs to external file?
                            file="bin_scaffolds.list"  # File to save list of contigs
                            ) {
 ## Winnow a gbt object by its marker table values
-    scafflist <- as.character(x$markTab$scaffold[which(x$markTab[,which(names(x$markTab)
-                                                                        ==param)]
-                                                       ==value)])
+    if (is.na(marksource)) {
+        cat("gbtools WARNING: No marksource supplied, using the first marker set by default...")
+        marksource=levels(x$markTab$source)[1]
+    }
+    markTab.subset <- subset(x$markTab,source==marksource)
+    scafflist <- as.character(markTab.subset$scaffold[which(markTab.subset[,which(names(markTab.subset)==param)]==value)])
     bin <- gbtbin (shortlist=scafflist,
                    x=x,
                    points=NA,
@@ -1093,6 +1098,14 @@ winnowMark.gbt <- function(x,  # Object of class gbt
 }
 
 winnowMark.gbtbin <- winnowMark.gbt
+
+write.gbt <- function(x,  # Object of class gbt or gbtbin
+                      file="gbtools_export.list" # File to export list of contigs
+                      ) {
+    write(as.character(x$scaff$ID),file=file)
+}
+
+write.gbtbin <- write.gbt
 
 importBins <- function(x, # Object of class gbt
                        file # File with table of bins (1st col) and contig names (2nd col)

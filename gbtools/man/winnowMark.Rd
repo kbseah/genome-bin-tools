@@ -4,7 +4,7 @@
 \alias{winnowMark}
 \title{Subset a gbt or gbtbin object by marker gene taxonomy}
 \usage{
-winnowMark(x, param, value, save, file)
+winnowMark(x, marksource, param, value, save, file)
 }
 \arguments{
 \item{x}{Object of class gbt or gbtbin}

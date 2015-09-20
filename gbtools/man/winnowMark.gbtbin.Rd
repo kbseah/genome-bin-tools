@@ -4,12 +4,14 @@
 \alias{winnowMark.gbtbin}
 \title{Subset a gbt or gbtbin object by marker gene taxonomy}
 \usage{
-\method{winnowMark}{gbtbin}(x, param = "Class",
+\method{winnowMark}{gbtbin}(x, marksource = NA, param = "Class",
   value = "Gammaproteobacteria", save = FALSE,
   file = "bin_scaffolds.list")
 }
 \arguments{
 \item{x}{Object of class gbt or gbtbin}
+
+\item{marksource}{Which marker set to use (default -- use the first one)}
 
 \item{param}{Taxonomic level to make subset (default "Class")}
 
