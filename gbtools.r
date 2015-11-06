@@ -1108,21 +1108,32 @@ write.gbt <- function(x,  # Object of class gbt or gbtbin
 write.gbtbin <- write.gbt
 
 importBins <- function(x, # Object of class gbt
-                       file # File with table of bins (1st col) and contig names (2nd col)
+                       file, # File with table of bins (1st col) and contig names (2nd col)
+                       to.list=T # Create list of gbtbin objects, rather than individual imports
                        ) {
     thetab <- read.table(file=file, sep="\t",header=F)
     names(thetab) <- c("bin","contig")
     binsvector <- as.vector(levels(thetab$bin))
-    # Create a dummy function assignfunc() because assign() works by side-effect!
-    assignfunc <- function(y) assign(as.character(binsvector[y]),
-                                     gbtbin.default(shortlist=as.vector(thetab$contig[which(thetab$bin==binsvector[y])]),
-                                                    x=x,
-                                                    slice=1
-                                                    ),
-                                     env=.GlobalEnv
-                                     )
-    for (i in 1:length(binsvector)) {
-        assignfunc(i)
+    if (to.list) {
+        output <- NULL # Initialize the list to return
+        for (i in 1:length(binsvector)) {
+            output[[i]] <- gbtbin.default(shortlist=as.vector(thetab$contig[which(thetab$bin==binsvector[i])]), x=x, slice=1)
+        }
+        names(output) <- binsvector
+        return(output)
+    }
+    else if (!to.list) {
+        # Create a dummy function assignfunc() because assign() works by side-effect!
+        assignfunc <- function(y) assign(as.character(binsvector[y]),
+                                         gbtbin.default(shortlist=as.vector(thetab$contig[which(thetab$bin==binsvector[y])]),
+                                                        x=x,
+                                                        slice=1
+                                                        ),
+                                         env=.GlobalEnv
+                                         )
+        for (i in 1:length(binsvector)) {
+            assignfunc(i)
+        }
     }
 }
 
@@ -1192,5 +1203,163 @@ multiBinPlot <- function (x, # Object of class gbt
                    fill=cols
                    )
         }
+    }
+}
+
+tabOverlapBins <- function(x, # First list of gbtbin objects 
+                           y, # Second list of gbtbin objects
+                           binNames.x="", # list of names for x. Default -- number sequentially
+                           binNames.y="", # list of names for y
+                           weight=TRUE, # weight overlaps by number of bases if true (default), else by number of contigs
+                           by="x" # Output type: "x" (default), "y", or "raw" -- by "x" means 'as fraction of rows', and by "y" means 'as fraction of columns'
+                           ) {
+    # Check that inputs are lists of gbtbin objects
+    if (!is.list(x) | !is.list(y)) {
+        cat ("gbtools ERROR: The input variables x and y must be character vectors giving names of gbtbin objects \n")
+    }
+    else {
+        if (binNames.x=="" || binNames.y=="") {
+            binNames.x <- 1:length(x)
+            binNames.y <- 1:length(y)
+            binNames.x <- sapply(binNames.x,
+                                 function(X) paste("x",X,sep=""))
+            binNames.y <- sapply(binNames.y,
+                                 function(X) paste("y",X,sep=""))
+        }
+        if (!weight) {
+            counts <- NULL # Initialize the vector of counts x in y
+            countsA <- NULL # Initialize vector of fractional counts x in y divided by total of x
+            countsB <- NULL # Initialize vector of fractional counts x in y divided by total of y
+            for (i in 1:length(x)) {
+                for (j in 1:length(y)) {
+                    curr.count <- length(which(x[[i]]$scaff$ID %in% y[[j]]$scaff$ID))
+                    counts <- c(counts, curr.count) # Append count of overlaps
+                    countsA <- c(countsA, curr.count / length(x[[i]]$scaff$ID)) # As fraction of bin x
+                    countsB <- c(countsB, curr.count / length(y[[j]]$scaff$ID)) # As fraction of bin y
+                    
+                }
+            }
+            counts.matrix <- matrix(counts, byrow=TRUE, nrow=length(x), dimnames=list(binNames.x,binNames.y))
+            countsA.matrix <- matrix(countsA, byrow=TRUE, nrow=length(x), dimnames=list(binNames.x,binNames.y))
+            countsB.matrix <- matrix(countsB, byrow=TRUE, nrow=length(x), dimnames=list(binNames.x,binNames.y))
+            if (by=="x") {
+                return (countsA.matrix)
+            } else if (by=="y") {
+                return (countsB.matrix)
+            } else if (by=="raw") {
+                return (counts.matrix)
+            } else {
+                cat ("gbtools ERROR: Invalid value for \"by\" -- should be \"x\", \"y\", or \"raw\" \n" )
+            }
+        } else {
+            lens <- NULL # Initialize the vector of bases x in y
+            lensA <- NULL # Initialize the vector of fractional bases x in y divided by total of x
+            lensB <- NULL
+            for (i in 1:length(x)) {
+                for (j in 1:length(y)) {
+                    curr.len <- sum(x[[i]]$scaff$Length[which(x[[i]]$scaff$ID %in% y[[j]]$scaff$ID)])
+                    lens <- c(lens, curr.len)
+                    lensA <- c(lensA, curr.len / sum(x[[i]]$scaff$Length))
+                    lensB <- c(lensB, curr.len / sum(y[[j]]$scaff$Length))
+                    
+                }
+            }
+            lens.matrix <- matrix(lens,byrow=TRUE,nrow=length(x),dimnames=list(binNames.x,binNames.y))
+            lensA.matrix <- matrix(lensA, byrow=TRUE,nrow=length(x),dimnames=list(binNames.x,binNames.y))
+            lensB.matrix <- matrix(lensB, byrow=TRUE,nrow=length(x),dimnames=list(binNames.x,binNames.y))
+            if (by=="x") {
+                return (lensA.matrix)
+            } else if (by=="y") {
+                return (lensB.matrix) 
+            } else if (by=="raw") {
+                return(lens.matrix)
+            } else {
+                cat ("gbtools ERROR: Invalid value for \"by\" -- should be \"x\", \"y\", or \"raw\" \n" )
+            }
+        }
+    }
+}
+
+mergeOverlapBins <- function(x, # List of gbtbin objects
+                             y, # Second list of gbtbin objects
+                             binNames.x="", # Names for gbtbin objects
+                             binNames.y="", # Names of gbtbin objects
+                             weight=TRUE, # Count overlaps by number of bases (default), else number of contigs
+                             by="y", # Condition by fraction in y (default) or x
+                             mergeto="x", # Merge y into x (default) or x into y; usually the opposite to "by"
+                             threshold="0.8", # Threshold of shared fraction for merging bins
+                             out="mergedBin" # Name prefix for output bins
+                             ) {
+    # Check that inputs are lists of gbtbin objects
+    if (!is.list(x) || !is.list(y)) {
+        cat ("gbtools ERROR: Input should be lists of gbtbin objects \n")
+    } else {
+        if (binNames.x=="" || binNames.y=="") {
+            binNames.x <- 1:length(x)
+            binNames.y <- 1:length(y)
+            binNames.x <- sapply(binNames.x,
+                                 function(X) paste("x",X,sep=""))
+            binNames.y <- sapply(binNames.y,
+                                 function(X) paste("y",X,sep=""))
+        }
+        # Calculate the overlap table
+        overlapTab <- tabOverlapBins(x=x,y=y,
+                                     binNames.x=binNames.x,
+                                     binNames.y=binNames.y,
+                                     weight=weight,
+                                     by=by)
+        # Initialize the list of merged bins
+        outList <- NULL
+        counter <- 1 # Counter to name the merged bins
+        # If merging by "x"
+        if (mergeto=="x") {
+            for (i in 1:length(x)) {
+                hits <- which(overlapTab[i,] > threshold)
+                if ( length(hits) > 0 ) {
+                    # merge the first y object into the x object
+                    newbin <- add(x[[i]],y[[hits[1]]])
+                    # If more than one y object exceeds threshold, merge those in sequentially
+                    if ( length(hits) > 1) {
+                        for (j in 2:length(hits)) {
+                            newbin <- add(newbin,y[[hits[j]]])
+                        }
+                    }
+                    # Report which bins were merged
+                    cat ("Merged:",
+                         as.character(binNames.x[i]),
+                         as.character(binNames.y[hits]),
+                         "\n",
+                         sep=" ")
+                    # Add the new bin to list of merged bins
+                    outList[[paste(as.character(out),as.character(counter),sep="")]] <- newbin
+                    counter <- counter+1
+                }
+            }
+        } else if (mergeto=="y") {   # If merging by "y"
+            for (i in 1:length(y)) {
+                hits <- which(overlapTab[,i] > threshold)
+                if ( length(hits) > 0 ) {
+                    # merge the first y object into the x object
+                    newbin <- add(y[[i]],x[[hits[1]]])
+                    # If more than one y object exceeds threshold, merge those in sequentially
+                    if ( length(hits) > 1) {
+                        for (j in 2:length(hits)) {
+                            newbin <- add(newbin,x[[hits[j]]])
+                        }
+                    }
+                    # Report which bins were merged
+                    cat ("Merged:",
+                         as.character(binNames.y[i]),
+                         as.character(binNames.x[hits]),
+                         "\n",
+                         sep=" ")
+                    # Add the new bin to list of merged bins
+                    outList[[paste(as.character(out),as.character(counter),sep="")]] <- newbin
+                    counter <- counter+1
+                }
+            }
+        }
+        # Return list of gbtbin objects
+        return(outList)
     }
 }
