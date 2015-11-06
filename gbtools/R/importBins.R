@@ -14,20 +14,31 @@
 #'
 
 importBins <- function(x, # Object of class gbt
-                       file # File with table of bins (1st col) and contig names (2nd col)
+                       file, # File with table of bins (1st col) and contig names (2nd col)
+                       to.list=T # Create list of gbtbin objects, rather than individual imports
                        ) {
     thetab <- read.table(file=file, sep="\t",header=F)
     names(thetab) <- c("bin","contig")
     binsvector <- as.vector(levels(thetab$bin))
-    # Create a dummy function assignfunc() because assign() works by side-effect!
-    assignfunc <- function(y) assign(as.character(binsvector[y]),
-                                     gbtbin.default(shortlist=as.vector(thetab$contig[which(thetab$bin==binsvector[y])]),
-                                                    x=x,
-                                                    slice=1
-                                                    ),
-                                     env=.GlobalEnv
-                                     )
-    for (i in 1:length(binsvector)) {
-        assignfunc(i)
+    if (to.list) {
+        output <- NULL # Initialize the list to return
+        for (i in 1:length(binsvector)) {
+            output[[i]] <- gbtbin.default(shortlist=as.vector(thetab$contig[which(thetab$bin==binsvector[i])]), x=x, slice=1)
+        }
+        names(output) <- binsvector
+        return(output)
+    }
+    else if (!to.list) {
+        # Create a dummy function assignfunc() because assign() works by side-effect!
+        assignfunc <- function(y) assign(as.character(binsvector[y]),
+                                         gbtbin.default(shortlist=as.vector(thetab$contig[which(thetab$bin==binsvector[y])]),
+                                                        x=x,
+                                                        slice=1
+                                                        ),
+                                         env=.GlobalEnv
+                                         )
+        for (i in 1:length(binsvector)) {
+            assignfunc(i)
+        }
     }
 }

@@ -4,7 +4,7 @@
 \alias{importBins}
 \title{Create several bin objects simultaneously from a table}
 \usage{
-importBins(x, file)
+importBins(x, file, to.list = T)
 }
 \arguments{
 \item{x}{Object of class gbt representing the parent metagenome}
