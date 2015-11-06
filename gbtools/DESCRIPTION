@@ -1,6 +1,6 @@
 Package: gbtools
 Type: Package
-Version: 2.4.3
+Version: 2.4.4
 Title: Interactive visualization of metagenome assemblies in R
 Date: 2015-11-06
 Author: Brandon Seah
