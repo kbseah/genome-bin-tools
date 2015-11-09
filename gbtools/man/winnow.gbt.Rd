@@ -4,8 +4,8 @@
 \alias{winnow.gbt}
 \title{Subset a gbt or gbtbin object by GC, length, or coverage cutoffs}
 \usage{
-\method{winnow}{gbt}(x, gc = c(0, 1), len = c(0, Inf), covmin = NA,
-  covmax = NA, slice = NA, save = FALSE, file = "bin_scaffolds.list")
+\method{winnow}{gbt}(x, gc = c(0, 1), len = c(0, Inf), covmin = 0,
+  covmax = Inf, slice = 1, save = FALSE, file = "bin_scaffolds.list")
 }
 \arguments{
 \item{x}{Object of class gbt or gbtbin}

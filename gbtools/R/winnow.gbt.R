@@ -15,9 +15,9 @@
 winnow.gbt <- function (x,
                         gc=c(0,1),
                         len=c(0,Inf),
-                        covmin=NA,
-                        covmax=NA,
-                        slice=NA,
+                        covmin=0,
+                        covmax=Inf,
+                        slice=1,
                         save=FALSE,
                         file="bin_scaffolds.list") {
 ## "Winnow" a gbt object by GC%, Length, and/or coverage cutoffs
