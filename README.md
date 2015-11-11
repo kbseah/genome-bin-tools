@@ -4,20 +4,71 @@ Refer to the [`gbtools` manual](https://github.com/kbseah/genome-bin-tools/wiki)
 
 ## Quick start
 
-Assuming you already have metagenomes assembled, coverage calculated by mapping, marker genes identified and taxonomically classified. What next?
+Here are the bare basics that you can do in `gbtools`, using the Olavius example data (look in the `example_data/Olavius_metagenome` folder in this package). 
 
- * Download the latest release of gbtools
- * Install package dependencies in R (`sp` and `plyr` packages)
- * Install `gbtools` package in R (look in the `R_source_package` folder in this repository)
- * Format input data, and check with `input_validator.pl` (in the `accessory_scripts` folder)
- * Load your data into R: `A <- gbt(covstats=c("coverage_file1.tab","coverage_file2.tab"),mark="taxonomic_markers.tab",marksource="source",ssu="ssu_markers.tab",trna="trna_markers.tab")`
- * Plot GC-coverage plots: `plot(A, slice=1)`
- * Select contigs by coverage/gc/length cutoffs: `A.bin1 <- winnow(A,gc=c(0.25,0.35),len=c(10000,Inf),covmin=100,covmax=Inf,slice=1)`
- * Overlay bin on plot: `points(A.bin1,slice=1)`
- * Plot differential-coverage plot: `plot(A,slice=c(1,2))`
- * Overlay bin on differential coverage plot: `points(A.bin1, slice=c(1,2))`
- * Choose bin by interactively selecting a cloud of points on plot: `A.bin2 <- choosebin(A, slice=c(1,2))`
- * View summary statistics for a bin: `summary(A.bin2)`
+The following commands are all in the R environment.
+
+### 1. Install `gbtools`
+
+```R
+ > install.packages("sp") # Dependency
+ > install.packages("plyr") # Dependency
+ > install.packages("gbtools_2.4.4.tar.gz",repos=NULL,type="source")
+```
+### 2. Import data and see summary statistics
+
+```R
+ > d <- gbt (covstats=c("SampleA2.covstats","SampleG1.covstats"), # Coverage data
+ +           ssu="olavius_metagenome.ssu.tab", # SSU gene annotations
+ +           mark=c("amphora2_results.tab","blobology_results.tab"), # Marker genes
+ +           marksource=c("amphora2","blob")) # Names for the marker gene sets
+```
+
+See summary stats by typing name of the `gbt` object
+
+```R
+ > d
+ > summary (d) # same thing
+```
+
+### 3. Plot coverage vs. GC
+
+```R 
+ > plot (d, # Plots the first set of coverage data by default
+ +       ssu=TRUE, # Annotate SSU genes with crosshairs
+ +       textlabels=TRUE, # Add labels for SSU genes
+ +       legend=TRUE) # Add legend for marker genes
+```
+
+![Coverage-GC plot](./example_data/Olavius_example/plot_cov_gc.png)
+
+### 4. Plot differential coverage
+
+```R
+ > plot (d, slice=c(1,2)) # Plot one set of coverage data vs. another
+```
+
+![Differential coverage plot](./example_data/Olavius_example/plot_diffcov.png)
+
+### 5. Interactively select bins from plot
+
+```R
+ > plot (d,slice=1,marker=FALSE) # Turn off color overlays
+ > d.bin1 <- choosebin (d, slice=1) # Click on the plot to define the region you want
+ > summary(d.bin1) # Summarize the newly-created bin
+ > points(d.bin1, slice=1) # Overlay the new bin on your plot
+```
+
+### 6. Import bins from 3rd party tools and plot them
+
+```R
+ > d.metabat_bins <- importBins (d, file="metabat_bins")
+ > multiBinPlot (d, bins=d.metabat_bins)
+```
+
+![Multiple bin plot overlay](./example_data/Olavius_example/multibinplot.png)
+
+Each bin gets plotted in a different color
 
 ## Getting help
 

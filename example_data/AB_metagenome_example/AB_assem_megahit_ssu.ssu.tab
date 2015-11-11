@@ -1,0 +1,34 @@
+scaffold	SSUid	SSUgenbankid	Superkingdom	Phylum	Class	Order	Family	Genus	Species	pid	alnlen	eval
+k99_18723	k99_18723:3891-5444(-)	JXBL01000001.2079279.2080839	Bacteria	Proteobacteria	Deltaproteobacteria	Desulfuromonadales	Geobacteraceae	Geobacter	Geobacter sp. GSS01	98.4	1538	-1
+k99_28977	k99_28977:425-1891(+)	AOLF01000030.853.2403	Archaea	Euryarchaeota	Halobacteria	Halobacteriales	Halobacteriaceae	Haloferax	Haloferax sp. ATCC BAA-644	93.0	1546	-1
+k99_20567	k99_20567:18203-19699(+)	DQ395722.1.1497	Bacteria	Acidobacteria	Acidobacteria	Acidobacteriales	Acidobacteriaceae 	(Acidobacteriaceae )	(Acidobacteriaceae )	99.6	1483	-1
+k99_39446	k99_39446:120803-122290(+)	AB010957.1.1493	Archaea	Crenarchaeota	Thermoprotei	Sulfolobales	Sulfolobaceae	Sulfolobus	Sulfolobus yangmingensis	98.9	1480	-1
+k99_11616	k99_11616:2-1488(+)	GQ466515.1.1456	Bacteria	Cyanobacteria	Cyanobacteria	SubsectionIV	FamilyI	Anabaena	Anabaena aphanizomenoides RPAN68	97.4	1449	-1
+k99_28439	k99_28439:26-1510(+)	CP000909.1585293.1586772	Bacteria	Chloroflexi	Chloroflexia	Chloroflexales	Chloroflexaceae	Chloroflexus	Chloroflexus aurantiacus J-10-fl	99.2	1467	-1
+k99_20417	k99_20417:147-1572(-)	ABZS01000001.17256.18760	Bacteria	Aquificae	Aquificae	Aquificales	Hydrogenothermaceae	Sulfurihydrogenibium	Sulfurihydrogenibium yellowstonense SS-5	99.4	1412	-1
+k99_29981	k99_29981:170-1641(+)	AF028692.1.1478	Archaea	Euryarchaeota	Methanomicrobia	Methanosarcinales	Methanosarcinaceae	Methanosarcina	Methanosarcina barkeri	98.2	1460	-1
+k99_806	k99_806:10333-11875(+)	FJ983017.1.1540	Bacteria	Spirochaetae	Spirochaetes	Spirochaetales	Spirochaetaceae	Treponema 2	uncultured bacterium	99.6	1526	-1
+k99_38243	k99_38243:250687-252209(-)	APMI01025423.182.1704	Bacteria	Gemmatimonadetes	Gemmatimonadetes	Gemmatimonadales	Gemmatimonadaceae	Gemmatimonas	wastewater metagenome	96.6	1523	-1
+k99_6945	k99_6945:26967-28499(-)	AFAR01000001.26426.27952	Bacteria	Planctomycetes	Planctomycetacia	Planctomycetales	Planctomycetaceae	Rhodopirellula	Rhodopirellula baltica WH47	99.9	1515	-1
+k99_13341	k99_13341:4507-5993(-)	AE008692.1616513.1617994	Bacteria	Proteobacteria	Alphaproteobacteria	Sphingomonadales	Sphingomonadaceae	Zymomonas	Zymomonas mobilis subsp. mobilis ZM4 	100.0	1469	-1
+k99_3718	k99_3718:3023-4514(-)	AJ585959.1.1498	Archaea	Euryarchaeota	Thermococci	Thermococcales	Thermococcaceae	Pyrococcus	Thermococcales archaeon T30a-17	99.3	1480	-1
+k99_1788	k99_1788:8-1545(+)	AF507959.1.1464	Bacteria	Aquificae	Aquificae	Aquificales	Hydrogenothermaceae	Persephonella	Persephonella sp. MAR10202	98.5	1464	-1
+k99_29383	k99_29383:3829-5338(-)	CCDQ010000021.88272.89763	Bacteria	Verrucomicrobia	Verrucomicrobiae	Verrucomicrobiales	Verrucomicrobiaceae	Akkermansia	Akkermansia muciniphila	100.0	1492	-1
+k99_36358	k99_36358:107-1579(+)	CP001787.1573365.1574834	Archaea	Euryarchaeota	Methanococci	Methanococcales	Methanocaldococcaceae	Methanocaldococcus	Methanocaldococcus vulcanius M7	97.9	1461	-1
+k99_29693	k99_29693:40-1553(-)	KC747478.1.1448	Bacteria	Actinobacteria	Actinobacteria	Micromonosporales	Micromonosporaceae	Salinispora	Salinispora arenicola	98.5	1456	-1
+k99_30170	k99_30170:13-1530(+)	FN687450.1.1513	Bacteria	Deinococcus-Thermus	Deinococci	Thermales	Thermaceae	Thermus	uncultured bacterium	99.5	1500	-1
+k99_42279	k99_42279:264-1633(+)	CP000816.728379.729800	Archaea	Crenarchaeota	Thermoprotei	Desulfurococcales	Desulfurococcaceae	Ignicoccus	Ignicoccus hospitalis KIN4	99.9	1359	-1
+k99_5389	k99_5389:123378-124863(+)	AE000782.1788987.1790478	Archaea	Euryarchaeota	Archaeoglobi	Archaeoglobales	Archaeoglobaceae	Archaeoglobus	Archaeoglobus fulgidus DSM 4304	100.0	1474	-1
+k99_11050	k99_11050:148-1674(+)	FN868425.1.1525	Bacteria	Firmicutes	Clostridia	Clostridiales	Ruminococcaceae	Ruminiclostridium	uncultured bacterium	99.7	1509	-1
+k99_33351	k99_33351:3807-5305(-)	BX571657.136191.137670	Bacteria	Proteobacteria	Epsilonproteobacteria	Campylobacterales	Helicobacteraceae	Wolinella	Wolinella succinogenes	100.0	1480	-1
+k99_8863	k99_8863:11-1489(+)	CP000875.1226128.1227602	Bacteria	Chloroflexi	Chloroflexia	Herpetosiphonales	Herpetosiphonaceae	Herpetosiphon	Herpetosiphon aurantiacus DSM 785	100.0	1462	-1
+k99_6130	k99_6130:227591-229097(-)	AE009439.516778.518289	Archaea	Euryarchaeota	Methanopyri	Methanopyrales	Methanopyraceae	Methanopyrus	Methanopyrus kandleri AV19	100.0	1496	-1
+k99_22857	k99_22857:3395-4949(-)	CP004347.1243986.1245531	Bacteria	Aquificae	Aquificae	Aquificales	Aquificaceae	Hydrogenobaculum	Hydrogenobaculum sp. HO	99.0	1538	-1
+k99_32633	k99_32633:46-1471(-)	CP000609.1594066.1595530	Archaea	Euryarchaeota	Methanococci	Methanococcales	Methanococcaceae	Methanococcus	Methanococcus maripaludis C5	100.0	1414	-1
+k99_31227	k99_31227:417754-419228(+)	AJ318041.1.1500	Archaea	Nanoarchaeota	Nanoarchaeota Incertae Sedis	Unknown Order	Unknown Family	Nanoarchaeum	Nanoarchaeum equitans	100.0	1463	-1
+k99_36054	k99_36054:2776-4335(+)	AJ872272.11293.12855	Bacteria	Thermotogae	Thermotogae	Thermotogales	Thermotogaceae	Thermotoga	Thermotoga sp. KOL6	98.5	1542	-1
+k99_36364	k99_36364:104557-106092(+)	EU017378.1.1546	Bacteria	Proteobacteria	Betaproteobacteria	Nitrosomonadales	Nitrosomonadaceae	Nitrosomonas	uncultured Nitrosomonas sp.	97.8	1518	-1
+k99_13024	k99_13024:3044-4589(-)	CP001146.1077333.1078873	Bacteria	Dictyoglomi	Dictyoglomia	Dictyoglomales	Dictyoglomaceae	Dictyoglomus	Dictyoglomus thermophilum H-6-12	98.8	1529	-1
+k99_17624	k99_17624:39-1091(-)	KF798551.1.1512	Bacteria	Proteobacteria	Gammaproteobacteria	Alteromonadales	Shewanellaceae	Shewanella	uncultured bacterium	99.4	1021	-1
+k99_13609	k99_13609:196090-197561(-)	CP001941.1422348.1423820	Archaea	Euryarchaeota	Thermoplasmata	Thermoplasmatales	Deep Sea Hydrothermal Vent Gp 2	(Deep Sea Hydrothermal Vent Gp 2)	(Deep Sea Hydrothermal Vent Gp 2)	100.0	1460	-1
+k99_2285	k99_2285:175-1678(+)	ADVK01000034.12.1519	Bacteria	Fusobacteria	Fusobacteriia	Fusobacteriales	Fusobacteriaceae	Fusobacterium	Fusobacterium nucleatum subsp. nucleatum ATCC 23726	98.0	1500	-1
