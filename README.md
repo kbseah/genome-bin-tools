@@ -2,6 +2,8 @@
 
 Refer to the [`gbtools` manual](https://github.com/kbseah/genome-bin-tools/wiki) for detailed instructions.
 
+Read the [paper](http://journal.frontiersin.org/article/10.3389/fmicb.2015.01451/abstract) published in Frontiers in Microbiology
+
 ## Quick start
 
 Here are the bare basics that you can do in `gbtools`, using the Olavius example data (look in the `example_data/Olavius_metagenome` folder in this package). 
@@ -78,9 +80,8 @@ Problems with input file formats? Read [the appendix](Appendix.\ Input\ file\ fo
 
 ## Citations 
 
-Cite: Brandon Seah (2015), genome-bin-tools, Online: https://github.com/kbseah/genome-bin-tools
-
-or via Zenodo: [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18785.svg)](http://dx.doi.org/10.5281/zenodo.18785)
+Citation:
+Seah BK and Gruber-Vodicka HR (2015). gbtools: Interactive visualization of metagenome bins in R. Front. Microbiol. 6:1451. [doi: 10.3389/fmicb.2015.01451](http://journal.frontiersin.org/article/10.3389/fmicb.2015.01451/abstract)
 
 Cite dependencies if you use them:
 * **R** -  R Core Team. 2014. R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. (http://www.R-project.org/)
@@ -94,3 +95,4 @@ Cite dependencies if you use them:
 * **Blobology** - Kumar S et al. 2013. Frontiers in Genetics 4 : 237
 
 Contact: Brandon Seah (`kbseah@mpi-bremen.de`)
+[Department of Symbiosis, Max Planck Institute for Marine Microbiology](http://www.mpi-bremen.de/en/Department_of_Symbiosis.html)
