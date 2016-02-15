@@ -49,6 +49,8 @@
 #' @param main Custom label for plot title
 #' @param xlab Custom label for x-axis label
 #' @param ylab Custom label for y-axis label
+#' @param symbolScale Scaling function to use for plot characters (options: "area", "length")
+#' @param symbolScaleParam Scaling constant for plot chars (default: 100)
 #' @param ... See par for more plot options
 #'
 #' @return New graphics object and plot, or error message
@@ -76,6 +78,8 @@ plot.gbtbin <- function(x,  # Object of class gbtbin
                      main="default",  # Custom title for plot
                      xlab="default",  # Custom x-axis label for plot
                      ylab="default",  # Custom y-axis label for plot
+                     symbolScale="area",
+                     symbolScaleParam=100,
                      ...) {
 ## Plot method for gbt objects
     if (is.na(slice[1]) || !is.numeric(slice)) {
@@ -240,7 +244,7 @@ plot.gbtbin <- function(x,  # Object of class gbtbin
         ## Draw the basic plot ################################################
         plot(x=X$xVals,
              y=X$yVals,
-             pch=20,cex=sqrt(X$Length)/100,
+             pch=20,cex=cexScaling(X$Length, type=symbolScale, const=symbolScaleParam),
              col=col,
              log=log,
              main=main,
@@ -271,7 +275,7 @@ plot.gbtbin <- function(x,  # Object of class gbtbin
             mark.stats <- generatePlotColors(X,markTabTemp,taxon,consensus)
             points(x=mark.stats$xVals,
                    y=mark.stats$yVals,
-                   pch=20,cex=sqrt(mark.stats$Length)/100,
+                   pch=20,cex=cexScaling(mark.stats, type=symbolScale, const=symbolScaleParam),
                    col=as.character(mark.stats$colors))
             if (legend) {
                 colorframe <- generateLegendColors(X,markTabTemp,taxon,consensus)
@@ -298,7 +302,7 @@ plot.gbtbin <- function(x,  # Object of class gbtbin
             plot(x=X$xVals,
                  y=X$yVals,
                  pch=20,
-                 cex=sqrt(X$Length)/100,
+                 cex=cexScaling(X$Length,type=symbolScale, const=symbolScaleParam),
                  col=X$Ref_GC*100,  # This colors points by GC values
                  main=main,
                  log=log,

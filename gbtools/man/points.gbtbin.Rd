@@ -5,7 +5,7 @@
 \title{Add points to plot of gbt or gbtbin object}
 \usage{
 \method{points}{gbtbin}(x, col = "black", slice = "default", cutoff = 0,
-  pch = 20, ...)
+  pch = 20, symbolScale = "area", symbolScaleParam = 100, ...)
 }
 \arguments{
 \item{x}{Object of class gbt}
@@ -15,6 +15,10 @@
 \item{slice}{}
 
 \item{cutoff}{Minimum length to plot contigs (numeric, default 1000)}
+
+\item{symbolScale}{Scaling function to use for plot characters (options: "area", "length")}
+
+\item{symbolScaleParam}{Scaling constant for plot chars (default: 100)}
 
 \item{...}{See par for more plot options}
 }

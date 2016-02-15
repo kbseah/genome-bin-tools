@@ -6,8 +6,9 @@
 #' This is useful for checking the results of automatic binning software,
 #' for example.
 #' 
-#' Note that plotting markers (the marker, ssu, and trna parameters) are
-#' not allowed for this type of plot, unlike the usual plot.gbt function.
+#' Note that plot overlays (markers, ssu, trna) and userAxis parameters are
+#' not allowed for this type of plot, unlike the usual plot.gbt function,
+#' because they would interfere with the bin overlay plotting.
 #' 
 #' The gbtbin objects to be plotted must be specified as a list, e.g.
 #' list(bin1,bin2,bin3). If you use the c() function there will be an error.
@@ -54,6 +55,7 @@ multiBinPlot <- function (x, # Object of class gbt
                           xlim=NULL, # Default xlim and ylim are automatic, but user can override
                           ylim=NULL
                           ) {
+    # NB: Plot annotations (marker genes, SSU, tRNA) turned off because will be overlapped by bins
     # Check if user-supplied palette matches no. of bins, else use default rainbow palette
     if (length(cols) != length(bins)) {
         cat ("\nUsing default rainbow palette...\n")
@@ -77,6 +79,7 @@ multiBinPlot <- function (x, # Object of class gbt
         cat (" is not a gbt or gbtbin object!\n")
     }
     else {
+        #### Base plot #########################################################
         plot.gbt(x,
                  slice=slice, # Inherit user-specified options
                  assemblyName=assemblyName,
@@ -86,6 +89,7 @@ multiBinPlot <- function (x, # Object of class gbt
                  col="grey",
                  marker=F,gc=F,ssu=F,trna=F # Turn off plot annotations
                  )
+        #### Overlay with bins ################################################## 
         for (i in 1:length(bins)) {
             if (class(bins[[i]]) != "gbtbin") {
                 cat ("\nObject number ")
@@ -99,6 +103,7 @@ multiBinPlot <- function (x, # Object of class gbt
                               cutoff=cutoff)
             }
         }
+        #### Add plot legend ####################################################
         if (legend==TRUE) {
             legend(x="topright",
                    legend=binNames,

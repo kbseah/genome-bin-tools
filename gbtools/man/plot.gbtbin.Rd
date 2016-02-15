@@ -8,7 +8,8 @@
   assemblyName = "", marker = TRUE, marksource = "", gc = FALSE,
   ssu = FALSE, trna = FALSE, consensus = TRUE, legend = FALSE,
   textlabel = FALSE, userAxis = NA, col = "grey", log = "default",
-  main = "default", xlab = "default", ylab = "default", ...)
+  main = "default", xlab = "default", ylab = "default",
+  symbolScale = "area", symbolScaleParam = 100, ...)
 }
 \arguments{
 \item{x}{Object of class gbtbin}
@@ -52,6 +53,10 @@ default TRUE)}
 \item{xlab}{Custom label for x-axis label}
 
 \item{ylab}{Custom label for y-axis label}
+
+\item{symbolScale}{Scaling function to use for plot characters (options: "area", "length")}
+
+\item{symbolScaleParam}{Scaling constant for plot chars (default: 100)}
 
 \item{...}{See par for more plot options}
 }

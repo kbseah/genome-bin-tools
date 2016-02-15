@@ -49,8 +49,9 @@ This is useful for checking the results of automatic binning software,
 for example.
 }
 \details{
-Note that plotting markers (the marker, ssu, and trna parameters) are
-not allowed for this type of plot, unlike the usual plot.gbt function.
+Note that plot overlays (markers, ssu, trna) and userAxis parameters are
+not allowed for this type of plot, unlike the usual plot.gbt function,
+because they would interfere with the bin overlay plotting.
 
 The gbtbin objects to be plotted must be specified as a list, e.g.
 list(bin1,bin2,bin3). If you use the c() function there will be an error.

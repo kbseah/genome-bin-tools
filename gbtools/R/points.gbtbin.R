@@ -14,7 +14,10 @@ points.gbtbin <- function(x,  # Object of class gbtbin
                           col="black",  # Overlay plot points color
                           slice="default",  # Which slice to use for plotting?
                           cutoff=0,  # Min contig length to plot
-                          pch=20, ...) {
+                          pch=20,
+                          symbolScale="area",
+                          symbolScaleParam=100,
+                          ...) {
     ## Defaults to the same slice used to choose the bin ###########################
     if (slice == "default") { 
         slice <- x$slice
@@ -38,7 +41,7 @@ points.gbtbin <- function(x,  # Object of class gbtbin
         points(x=X$Ref_GC,
                y=X$Avg_fold,
                pch=pch,
-               cex=sqrt(as.numeric(X$Length))/100,
+               cex=cexScaling(as.numeric(X$Length),type=symbolScale,const=symbolScaleParam),
                col=col, ...)
     }
     ## Add points to differential coverage plot #####################################
@@ -57,7 +60,7 @@ points.gbtbin <- function(x,  # Object of class gbtbin
         points(x=X$Avg_fold_1,
                y=X$Avg_fold_2,
                pch=pch,
-               cex=sqrt(as.numeric(X$Length))/100,
+               cex=cexScaling(as.numeric(X$Length),type=symbolScale,const=symbolScaleParam),
                col=col, ...)
     }
     ## Throw error message for invalid slice options ################################
