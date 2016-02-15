@@ -1,4 +1,4 @@
-#' Generates colors for marker gene phylotypes in plot
+#' Generates colors for marker gene phylotypes in plot (deprecated)
 #'
 #' @inheritParams generateLegendColors
 #' @return data.frame with color assignments for each scaffold

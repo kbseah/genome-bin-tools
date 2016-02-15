@@ -8,7 +8,7 @@
   pch = 20, symbolScale = "area", symbolScaleParam = 100, ...)
 }
 \arguments{
-\item{x}{Object of class gbt}
+\item{x}{Object of class gbt or gbtbin}
 
 \item{col}{Color for points (default "grey")}
 

@@ -2,17 +2,17 @@
 % Please edit documentation in R/plot.gbt.R
 \name{plot.gbt}
 \alias{plot.gbt}
-\title{Plot object of class gbt}
+\title{Plot object of class gbt or gbtbin}
 \usage{
 \method{plot}{gbt}(x, slice = 1, cutoff = 1000, taxon = "Class",
-  assemblyName = "", marker = TRUE, marksource = "", gc = FALSE,
-  ssu = FALSE, trna = FALSE, consensus = TRUE, legend = FALSE,
-  textlabel = FALSE, userAxis = NA, col = "grey", log = "default",
-  main = "default", xlab = "default", ylab = "default",
+  assemblyName = "", marker = TRUE, marksource = "", markCutoff = 0.8,
+  gc = FALSE, ssu = FALSE, trna = FALSE, consensus = TRUE,
+  legend = FALSE, textlabel = FALSE, userAxis = NA, col = "grey",
+  log = "default", main = "default", xlab = "default", ylab = "default",
   symbolScale = "area", symbolScaleParam = 100, ...)
 }
 \arguments{
-\item{x}{Object of class gbt}
+\item{x}{Object of class gbt or gbtbin}
 
 \item{slice}{For plotting coverage data, which sample to use? (see
 Details section below)}
@@ -25,6 +25,10 @@ Details section below)}
 \item{assemblyName}{Name of the metagenome, for plot title}
 
 \item{marker}{Color plot by taxon markers? (logical, default TRUE)}
+
+\item{marksource}{Specify which marker set to plot (default: first supplied)}
+
+\item{markCutoff}{Length x coverage weight cutoff for colored markers (default: 0.8)}
 
 \item{gc}{Color plot by GC% instead of taxon markers? Only used for
 differential coverage plots, i.e. when two values are supplied
@@ -64,7 +68,7 @@ default TRUE)}
 New graphics object and plot, or error message
 }
 \description{
-Plot GC-coverage or differential coverage plots from a gbt object
+Plot GC-coverage or differential coverage plots from a gbt or gbtbin object
 }
 \details{
 The plot method for gbt objects can produce both GC-coverage and

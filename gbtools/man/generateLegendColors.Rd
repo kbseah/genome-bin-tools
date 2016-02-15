@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateLegendColors.R
 \name{generateLegendColors}
 \alias{generateLegendColors}
-\title{Generates colors for plot legends when coloring by markers}
+\title{Generates colors for plot legends when coloring by markers (deprecated)}
 \usage{
 generateLegendColors(scaffold.stats, marker.list, taxon, consensus)
 }
@@ -20,7 +20,7 @@ consensus taxonomic assignment? (logical)}
 data.frame with color assignments for each scaffold
 }
 \description{
-Generates colors for plot legends when coloring by markers
+Generates colors for plot legends when coloring by markers (deprecated)
 }
 \keyword{internal}
 

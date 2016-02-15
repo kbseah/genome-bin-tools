@@ -1,6 +1,6 @@
-#' Plot object of class gbt
+#' Plot object of class gbt or gbtbin
 #'
-#' Plot GC-coverage or differential coverage plots from a gbt object
+#' Plot GC-coverage or differential coverage plots from a gbt or gbtbin object
 #'
 #' The plot method for gbt objects can produce both GC-coverage and
 #' differential coverage plots. A gbt object contains scaffold data and
@@ -25,7 +25,7 @@
 #' will take the coverage set that is given by the slice= parameter (default
 #' is the first set of coverage data).
 #' 
-#' @param x Object of class gbt
+#' @param x Object of class gbt or gbtbin
 #' @param slice For plotting coverage data, which sample to use? (see
 #'               Details section below)
 #' @param cutoff Minimum length to plot contigs (numeric, default 1000)
@@ -33,6 +33,8 @@
 #'               "Class" or "Phylum". (default "Class")
 #' @param assemblyName Name of the metagenome, for plot title
 #' @param marker Color plot by taxon markers? (logical, default TRUE)
+#' @param marksource Specify which marker set to plot (default: first supplied)
+#' @param markCutoff Length x coverage weight cutoff for colored markers (default: 0.8)
 #' @param gc Color plot by GC% instead of taxon markers? Only used for
 #'            differential coverage plots, i.e. when two values are supplied
 #'            to the slice parameter. (logical, default FALSE)
@@ -64,6 +66,7 @@ plot.gbt <- function(x,  # Object of class gbt
                      assemblyName="",  # Assembly name, for plot title only
                      marker=TRUE,  # Display marker color overlay
                      marksource="",  # Which marker source to plot; if empty - default first
+                     markCutoff=0.8, # Weight cutoff for marker overlay
                      gc=FALSE,  # Diffcov plot only: Color by GC instead of marker
                      ssu=FALSE,  # Overlay SSU markers?
                      trna=FALSE,  # Overlay tRNA markers?
@@ -98,19 +101,22 @@ plot.gbt <- function(x,  # Object of class gbt
                     userX.x <- data.frame(ID=x$scaff$ID,
                                           Ref_GC=x$scaff$Ref_GC,
                                           Length=x$scaff$Length,
+                                          Avg_fold=x$scaff$Avg_fold,
                                           xVals=x$scaff$Ref_GC)
                 } else if (userAxis[1]=="cov") {
                     userX.x <- merge(data.frame(ID=x$scaff$ID,
                                                 Ref_GC=x$scaff$Ref_GC,
-                                                Length=x$scaff$Length),
+                                                Length=x$scaff$Length,
+                                                Avg_fold=x$scaff$Avg_fold),
                                      data.frame(ID=x$covs$ID,
-                                                xVals=x$covs[slice[1]+1]),
+                                                xVals=x$covs[[slice[1]+1]]),
                                      by="ID")
                 } else if (any(userAxis[1]==x$userSource)) {
                     sourcenum <- which(x$userSource==userAxis[1])
                     userX.x <- merge(data.frame(ID=x$scaff$ID,
                                                 Ref_GC=x$scaff$Ref_GC,
-                                                Length=x$scaff$Length),
+                                                Length=x$scaff$Length,
+                                                Avg_fold=x$scaff$Avg_fold),
                                      data.frame(ID=x$userTab[[sourcenum]]$scaffold,
                                                 xVals=x$userTab[[sourcenum]][2]),
                                      by="ID")
@@ -123,7 +129,7 @@ plot.gbt <- function(x,  # Object of class gbt
                                           yVals=x$scaff$Ref_GC)
                 } else if (userAxis[2] =="cov") {
                     userX.y <- data.frame(ID=x$covs$ID,
-                                          yVals=x$covs[slice[1]+1])
+                                          yVals=x$covs[[slice[1]+1]])
                 } else if (any(userAxis[2]==x$userSource)) {
                     sourcenum <- which(x$userSource==userAxis[2])
                     userX.y <- data.frame(ID=x$userTab[[sourcenum]]$scaffold,
@@ -135,7 +141,7 @@ plot.gbt <- function(x,  # Object of class gbt
                 X <- merge(userX.x,
                            userX.y,
                            by="ID")
-                names(X) <- c("ID","Ref_GC","Length","xVals","yVals")
+                names(X) <- c("ID","Ref_GC","Length","Avg_fold","xVals","yVals")
                 if (cutoff > 0) {
                     X <- subset(X,Length>=cutoff)
                 }
@@ -186,11 +192,12 @@ plot.gbt <- function(x,  # Object of class gbt
         X <- merge(data.frame(ID=x$scaff$ID,
                               Ref_GC=x$scaff$Ref_GC,
                               Length=x$scaff$Length,
+                              Avg_fold=x$scaff$Avg_fold,
                               xVals=x$scaff$Ref_GC),
                    data.frame(ID=x$covs$ID,
-                              yVals=x$covs[slice[1]+1]),
+                              yVals=x$covs[[slice[1]+1]]),
                    by="ID")
-        names(X) <- c("ID","Ref_GC","Length","xVals","yVals")
+        names(X) <- c("ID","Ref_GC","Length","Avg_fold","xVals","yVals")
         ## Do the basic plot ##################################################
         if (cutoff > 0) {  # Minimum length cutoff for contigs to be plotted
             X <- subset(X,Length >= cutoff)
@@ -215,12 +222,13 @@ plot.gbt <- function(x,  # Object of class gbt
         ## Make a new data.frame for plotting #################################
         X <- merge (data.frame (ID=x$scaff$ID,
                                 Ref_GC=x$scaff$Ref_GC,
-                                Length=x$scaff$Length),
+                                Length=x$scaff$Length,
+                                Avg_fold=x$scaff$Avg_fold),
                     data.frame (ID=x$covs$ID,
-                                xVals=x$covs[slice[1]+1],
-                                yVals=x$covs[slice[2]+1]),
+                                xVals=x$covs[[slice[1]+1]],
+                                yVals=x$covs[[slice[2]+1]]),
                     by="ID")
-        names(X) <- c("ID","Ref_GC","Length","xVals","yVals")
+        names(X) <- c("ID","Ref_GC","Length","Avg_fold","xVals","yVals")
         ## Plot parameters ####################################################
         if (cutoff > 0 ) {
             X <- subset(X,Length>=cutoff)
@@ -272,16 +280,25 @@ plot.gbt <- function(x,  # Object of class gbt
                 cat ("gbtools ERROR: Please check marksource argument\n")
             }
             markTabTemp <- subset(x$markTab,source==marksource)
-            mark.stats <- generatePlotColors(X,markTabTemp,taxon,consensus)
+            mark.stats <- generatePlotColors2(X,markTabTemp,taxon,consensus,markCutoff)
             points(x=mark.stats$xVals,
                    y=mark.stats$yVals,
-                   pch=20,cex=cexScaling(mark.stats$Length, type=symbolScale, const=symbolScaleParam),
+                   pch=20,cex=cexScaling(mark.stats$Length,
+                                         type=symbolScale,
+                                         const=symbolScaleParam
+                                         ),
                    col=as.character(mark.stats$colors))
             if (legend) {
-                colorframe <- generateLegendColors(X,markTabTemp,taxon,consensus)
-                new.colorframe <- subset(colorframe,colors!="grey50")
-                newrow <- c("singletons","grey50")
-                new.colorframe <-rbind (new.colorframe,newrow)
+                # Get those taxa which are not below cutoff
+                colorframe <- unique(data.frame(mark.stats$taxon,
+                                                mark.stats$colors,
+                                                stringsAsFactors=FALSE # Else get error with newrow
+                                                )
+                                     )
+                names(colorframe) <- c("taxon","colors")
+                colorframe <- subset(colorframe,colors!="grey50")
+                newrow <- c("(below cutoff)","grey50")
+                new.colorframe <-rbind (colorframe,newrow)
                 legend("topright",
                        legend=new.colorframe$taxon,
                        cex=0.6,

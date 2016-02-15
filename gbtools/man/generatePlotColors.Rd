@@ -2,7 +2,7 @@
 % Please edit documentation in R/generatePlotColors.R
 \name{generatePlotColors}
 \alias{generatePlotColors}
-\title{Generates colors for marker gene phylotypes in plot}
+\title{Generates colors for marker gene phylotypes in plot (deprecated)}
 \usage{
 generatePlotColors(scaffold.stats, marker.list, taxon, consensus)
 }
@@ -20,7 +20,7 @@ consensus taxonomic assignment? (logical)}
 data.frame with color assignments for each scaffold
 }
 \description{
-Generates colors for marker gene phylotypes in plot
+Generates colors for marker gene phylotypes in plot (deprecated)
 }
 \keyword{internal}
 

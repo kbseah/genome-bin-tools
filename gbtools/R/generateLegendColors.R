@@ -1,4 +1,4 @@
-#' Generates colors for plot legends when coloring by markers
+#' Generates colors for plot legends when coloring by markers (deprecated)
 #'
 #' @param scaffold.stats scaff data.frame from a gbt object
 #' @param marker.list List of markers from markTab data.frame of gbt object
