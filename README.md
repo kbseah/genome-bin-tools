@@ -76,6 +76,8 @@ Each bin gets plotted in a different color
 
 ## Getting help
 
+Documentation for each function can be accessed in R by typing `?` followed by function name at the command line (the gbtools `plot` function is filed under `plot.gbt` to distinguish it from the generic plot function).
+
 Problems with using `gbtools`? Create a new issue using the GitHub issue-tracker on the right. Or send me an email, with "gbtools help" in the subject line.
 
 Problems with input file formats? Read [the appendix](Appendix.\ Input\ file\ formats) and use the `input_validator.pl` script to check your input files.
