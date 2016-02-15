@@ -12,10 +12,12 @@ The following commands are all in the R environment.
 
 ### 1. Install `gbtools`
 
+The `tar.gz` archive can be found in the `R_source_package` folder.
+
 ```R
  > install.packages("sp") # Dependency
  > install.packages("plyr") # Dependency
- > install.packages("gbtools_2.4.4.tar.gz",repos=NULL,type="source")
+ > install.packages("gbtools_2.4.5.tar.gz",repos=NULL,type="source")
 ```
 ### 2. Import data and see summary statistics
 
