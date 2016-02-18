@@ -28,6 +28,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use strict;
 use warnings;
+use File::Basename;
 use Getopt::Long qw(:config pass_through no_ignore_case);
 
 my ($blasttaxid_file, $taxdump_dir, $assembly_file, $output_file, $blastdb_path) = ("",".","","","");
@@ -64,12 +65,17 @@ sub usage {
 
 usage() unless -r "$taxdump_dir/nodes.dmp" and -r "$taxdump_dir/names.dmp";
 
+# Parse $assembly_file into path and filename
+
+my ($assembly_file_file, $assembly_file_path) = fileparse ($assembly_file);
+
 # Check that blasttaxid has been run; if not, and if assembly file has been specified, run the blast job
 
 if ($blasttaxid_file eq "" && $assembly_file ne "" && $blastdb_path ne "") {
     print STDERR scalar localtime() . " - Running blastn of assembly file $assembly_file against Blast database at $blastdb_path. \n";
-    system ("blastn -task megablast -query $assembly_file -db $blastdb_path -evalue 1e-5 -num_threads $num_threads -max_target_seqs 1 -outfmt \'6 qseqid staxids\' -out tmp.$assembly_file.blastout");
-    $blasttaxid_file = "tmp.$assembly_file.blastout";
+    $blasttaxid_file = $assembly_file_path."tmp.".$assembly_file_file.".blastout";
+    print STDERR scalar localtime() . " - Writing Blast results to $blasttaxid_file. \n";
+    system ("blastn -task megablast -query $assembly_file -db $blastdb_path -evalue 1e-5 -num_threads $num_threads -max_target_seqs 1 -outfmt \'6 qseqid staxids\' -out $blasttaxid_file");
 }
 
 if (not @tax_list) {@tax_list = ("superkingdom","phylum","class","order","family","genus","species")};
