@@ -5,10 +5,11 @@
 \title{Plot object of class gbtbin}
 \usage{
 \method{plot}{gbtbin}(x, slice = 1, cutoff = 1000, taxon = "Class",
-  assemblyName = "", marker = TRUE, marksource = "", markCutoff = 0.8,
-  gc = FALSE, ssu = FALSE, trna = FALSE, consensus = TRUE,
-  legend = FALSE, textlabel = FALSE, userAxis = NA, col = "grey",
-  log = "default", main = "default", xlab = "default", ylab = "default",
+  taxonLevel = "", highlightTaxon = "", assemblyName = "",
+  marker = TRUE, marksource = "", markCutoff = 0.8, gc = FALSE,
+  ssu = FALSE, trna = FALSE, consensus = TRUE, legend = FALSE,
+  textlabel = FALSE, userAxis = NA, col = "grey", log = "default",
+  main = "default", xlab = "default", ylab = "default",
   symbolScale = "area", symbolScaleParam = 100, ...)
 }
 \arguments{
@@ -19,8 +20,10 @@ Details section below)}
 
 \item{cutoff}{Minimum length to plot contigs (numeric, default 1000)}
 
-\item{taxon}{Taxonomic level for coloring the taxonomic markers, e.g.
+\item{taxonLevel}{Taxonomic level for coloring the taxonomic markers, e.g.
 "Class" or "Phylum". (default "Class")}
+
+\item{highlightTaxon}{Color markers affiliated to specified taxon only (default: "")}
 
 \item{assemblyName}{Name of the metagenome, for plot title}
 

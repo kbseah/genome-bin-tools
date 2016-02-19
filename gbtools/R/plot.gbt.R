@@ -29,12 +29,13 @@
 #' @param slice For plotting coverage data, which sample to use? (see
 #'               Details section below)
 #' @param cutoff Minimum length to plot contigs (numeric, default 1000)
-#' @param taxon Taxonomic level for coloring the taxonomic markers, e.g.
+#' @param taxonLevel Taxonomic level for coloring the taxonomic markers, e.g.
 #'               "Class" or "Phylum". (default "Class")
 #' @param assemblyName Name of the metagenome, for plot title
 #' @param marker Color plot by taxon markers? (logical, default TRUE)
 #' @param marksource Specify which marker set to plot (default: first supplied)
 #' @param markCutoff Length x coverage weight cutoff for colored markers (default: 0.8)
+#' @param highlightTaxon Color markers affiliated to specified taxon only (default: "")
 #' @param gc Color plot by GC% instead of taxon markers? Only used for
 #'            differential coverage plots, i.e. when two values are supplied
 #'            to the slice parameter. (logical, default FALSE)
@@ -62,7 +63,9 @@
 plot.gbt <- function(x,  # Object of class gbt
                      slice=1,  # Which coverage values to plot?
                      cutoff=1000,  # Minimum contig length to plot
-                     taxon="Class",  # Taxonomic level for coloring markers
+                     taxon="Class",  # Taxonomic level for coloring markers (keep for legacy compatibility)
+                     taxonLevel="", # Alias for parameter "taxon"
+                     highlightTaxon="", # Overlay colored markers for this specific taxon only
                      assemblyName="",  # Assembly name, for plot title only
                      marker=TRUE,  # Display marker color overlay
                      marksource="",  # Which marker source to plot; if empty - default first
@@ -85,6 +88,15 @@ plot.gbt <- function(x,  # Object of class gbt
                      symbolScaleParam=100, # Scaling parameter for the plot symbols
                      ...) {
 ## Plot method for gbt objects
+    ## Process "taxonLevel" alias for "taxon" parameter
+    if (taxonLevel != taxon) {
+        if (taxonLevel == "" && taxon != "") {
+            taxonLevel <- taxon
+        } else {
+            taxon <- taxonLevel
+        }
+    }
+    ## Catch missing "slice" parameter
     if (is.na(slice[1]) || !is.numeric(slice)) {
         cat("gbtools ERROR: Please supply valid value for slice option\n")
     }
@@ -261,6 +273,7 @@ plot.gbt <- function(x,  # Object of class gbt
              ...)
         ## Add marker taxonomy overlay ########################################
         if (marker && !is.na(x$markTab)) {
+            ## If marksource not specified, use first marker set by default
             if (marksource == "") {
                 marksource <- x$markSource[1]  # Default: Display markers from first source
             } else if (is.character (marksource)
@@ -279,8 +292,16 @@ plot.gbt <- function(x,  # Object of class gbt
             } else {
                 cat ("gbtools ERROR: Please check marksource argument\n")
             }
+            ## Overlay markers ###############################################
             markTabTemp <- subset(x$markTab,source==marksource)
             mark.stats <- generatePlotColors2(X,markTabTemp,taxon,consensus,markCutoff)
+            if (highlightTaxon != "") { ## Highlight specific taxon ##############
+                # Subset mark.stats to keep only the specified taxon
+                mark.stats <- mark.stats[which(mark.stats$taxon==highlightTaxon),]
+                if (dim(mark.stats)[1] == 0) { # If mark.stats contains no rows, warning
+                    cat ("gbtools WARNING: Taxon specified by highlightTaxon matches none!\n")
+                }
+            }
             points(x=mark.stats$xVals,
                    y=mark.stats$yVals,
                    pch=20,cex=cexScaling(mark.stats$Length,
@@ -297,12 +318,14 @@ plot.gbt <- function(x,  # Object of class gbt
                                      )
                 names(colorframe) <- c("taxon","colors")
                 colorframe <- subset(colorframe,colors!="grey50")
-                newrow <- c("(below cutoff)","grey50")
-                new.colorframe <-rbind (colorframe,newrow)
+                if (highlightTaxon == "") { # Don't add "below cutoff" to legend if only highlighting one taxon
+                    newrow <- c("(below cutoff)","grey50")
+                    colorframe <-rbind (colorframe,newrow)
+                }
                 legend("topright",
-                       legend=new.colorframe$taxon,
+                       legend=colorframe$taxon,
                        cex=0.6,
-                       fill=as.character(new.colorframe$colors))
+                       fill=as.character(colorframe$colors))
             }
         }
     }
