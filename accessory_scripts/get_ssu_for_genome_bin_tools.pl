@@ -5,11 +5,12 @@
 ## Incorporates code from phyloFlash version 1.5d by Harald Gruber-Vodicka
 
 ## Prerequisites:
-##      Usearch
+##      Vsearch
 ##      Barrnap 0.5
 ##      Bedtools 2.21.0
 
 ## Contact: kbseah@mpi-bremen.de
+## Version 3 - 2016-02-19 - Fix tmp filename breaks when path given in output prefix
 ## Version 2 - 2015-06-19 - Use Vsearch instead of Usearch, to be able to use latest phyloFlash dbs
 ## Version 1 - 2014-10-27
 ## Version 0 - 2014-10-23
@@ -17,16 +18,17 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use File::Basename;
 
-#my $path_to_ssu_db = "/data/db/phyloFlash/SSURef_NR99_119_for_phyloFlash.udb";      # Path to Usearch database, identical to that used by phyloFlash
-my $path_to_ssu_db = "/data/db/phyloFlash_dev/old/phyloFlash_1.5/SSURef_NR99_119_for_phyloFlash.udb";
+my $path_to_ssu_db = "/data/db/phyloFlash_dev/old/phyloFlash_1.5/SSURef_NR99_119_for_phyloFlash.udb"; # Deprecated, keep for testing
 my $path_to_ssu_db_vsearch = "/data/db/phyloFlash_dev/phyloFlash/119/SILVA_SSU.noLSU.masked.trimmed.fasta";
+    # Path to Vsearch database, identical to that used by phyloFlash, change to your own local settings
 my $cpus = 1;       # How many CPUs to use for parallelization-capable tools
 my $assem_file;     # Assembly (Fasta formatted) to scan for SSU reads
 my $output_prefix;  # Prefix for output files and intermediate files
-#my $taxon_level=2;  # Pick a taxonomic level to parse from the taxon string (domain=0, phylum=1, class=2...)
-my %uniq_pred_hash;         # Hash to make sure that each scaffold only contains at most one SSU prediction
-my %SSU_assembly;           # Hash to store output from parsing Usearch results
+#my $taxon_level=2; # Pick a taxonomic level to parse from the taxon string (domain=0, phylum=1, class=2...)
+my %uniq_pred_hash; # Hash to make sure that each scaffold only contains at most one SSU prediction
+my %SSU_assembly;   # Hash to store output from parsing Usearch results
 
 if (@ARGV == 0 ) { usage(); }
 
@@ -38,9 +40,11 @@ GetOptions (
     #'taxlevel|t=i' => \$taxon_level
 );
 
+my ($output_prefix_file, $output_prefix_path) = fileparse ($output_prefix);
+    # Parse output prefix to filename and path, in case not in current folder
 do_barrnap();
 filter_barrnap_results();
-#do_usearch();
+#do_usearch(); # Deprecated
 do_vsearch();
 parse_usearch_output();
 
@@ -72,18 +76,18 @@ sub usage {
 sub do_barrnap {
     ## for microbial SSU ######################################################
     foreach ('bac','arc') {
-        my $barrnap_cmd = "barrnap --kingdom $_ --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '16S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";
+        my $barrnap_cmd = "barrnap --kingdom $_ --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '16S_rRNA' \>\> $output_prefix_path\/tmp.$output_prefix_file.scaffolds.gff";
         system ($barrnap_cmd) == 0
             or warn("Could not run [$barrnap_cmd]: $!\n");
     }
     ## for the euk SSU ########################################################
-        my $barrnap_euk_cmd = "barrnap --kingdom euk --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '18S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";
+        my $barrnap_euk_cmd = "barrnap --kingdom euk --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '18S_rRNA' \>\> $output_prefix_path\/tmp.$output_prefix_file.scaffolds.gff";
         system ($barrnap_euk_cmd) == 0
             or warn("Could not run [$barrnap_euk_cmd]: $!\n");
             # warn instead of die on nonzero exit status because sample may not
             # contain any eukaryotic 18S
     ## for the mitochondrial SSU which is 12S not 16S #########################
-        my $barrnap_mito_cmd = "barrnap --kingdom mito --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '12S_rRNA' \>\> tmp.$output_prefix.scaffolds.gff";
+        my $barrnap_mito_cmd = "barrnap --kingdom mito --threads $cpus --evalue 1e-15 --reject 0.8 $assem_file | grep '12S_rRNA' \>\> $output_prefix_path\/tmp.$output_prefix_file.scaffolds.gff";
         system ($barrnap_mito_cmd) == 0
             or warn("Could not run [$barrnap_mito_cmd]: $!\n");
             # warn instead of die on nonzero exit status because sample may not
@@ -92,8 +96,8 @@ sub do_barrnap {
 }
 
 sub filter_barrnap_results {
-    open(SSUGFF, "< tmp.$output_prefix.scaffolds.gff")
-        or die ("Cannot open GFF file tmp.$output_prefix.scaffolds.gff : $!\n");
+    open(SSUGFF, "< $output_prefix_path\/tmp.$output_prefix_file.scaffolds.gff")
+        or die ("Cannot open GFF file $output_prefix_path\/tmp.$output_prefix_file.scaffolds.gff : $!\n");
     while (<SSUGFF>) {
         chomp;
         my @theline = split /\s+/, $_;
@@ -112,7 +116,7 @@ sub filter_barrnap_results {
     close(SSUGFFWRITE);
 }
 
-sub do_usearch {
+sub do_usearch { # Deprecated, still here for testing purposes
     my $get_fasta_cmd = "fastaFromBed -fi $assem_file -bed $output_prefix.barrnap.ssu.gff -fo $output_prefix.barrnap.ssu.fasta -s";
     system($get_fasta_cmd)==0 or die "Could not run [$get_fasta_cmd] : $! \n";
     my $usearch_cmd = "usearch -usearch_global $output_prefix.barrnap.ssu.fasta -db $path_to_ssu_db -id 0.7 -userout $output_prefix.barrnap.ssu.usearch.out -userfields query+target+id+alnlen+evalue -threads $cpus --strand plus --notrunclabels -notmatched $output_prefix.barrnap.ssu.fasta.usearch.notmatched.fasta -dbmatched $output_prefix.barrnap.ssu.fasta.usearch.dbhits.fasta";
