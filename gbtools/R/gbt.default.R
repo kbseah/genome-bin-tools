@@ -17,6 +17,8 @@
 #'             (optional)
 #' @param tnra Table of tRNA genes found in assembly. Can use the output from
 #'              tRNAscan-SE directly. (optional)
+#' @param dec Decimal separator used in covstats tables. Default is the
+#'            current locale default found with getOption("OutDec")
 #'
 #' @return Object of class gbt
 #'
@@ -27,7 +29,8 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
                          mark=NA,   # Vector of filenames for marker gene taxonomy tables
                          marksource=NA,  # Vector of source names for each marker gene table
                          ssu=NA,    # Filename for SSU annotation table
-                         trna=NA    # Filename for tRNA annotation table
+                         trna=NA,    # Filename for tRNA annotation table
+                         dec=getOption("OutDec") # Detect decimal separator for this locale
                          ) {
 ## Create new gbt objects
     if ( class(covstats)!="character" || length(covstats)==0 ) {  # Check that covstats argument is character class
@@ -38,6 +41,7 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
         if (length(covstats)==1) {
             scaff <- read.table(file=as.character(covstats),
                                 sep="\t",
+                                dec=dec,
                                 header=T)
             covs <- data.frame(ID=scaff$ID,
                                scaff$Avg_fold)
@@ -45,12 +49,14 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
         else {
             scaff <- read.table(file=as.character(covstats[1]),
                                 sep="\t",
+                                dec=dec,
                                 header=T)  # Contains all other data associated per contig
             covs <- data.frame(ID=scaff$ID,
                                scaff$Avg_fold)  # Contains scaffold ID and coverage data
             for (i in 2:length(covstats)) {  # Read the other covstats files
                 scafftemp <- read.table(file=as.character(covstats[i]),
                                         sep="\t",
+                                        dec=dec,
                                         header=T)
                 covs <- merge(covs,
                               data.frame(ID=scafftemp$ID,

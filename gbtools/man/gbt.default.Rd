@@ -5,7 +5,7 @@
 \title{Create new gbt object}
 \usage{
 \method{gbt}{default}(covstats, mark = NA, marksource = NA, ssu = NA,
-  trna = NA)
+  trna = NA, dec = getOption("OutDec"))
 }
 \arguments{
 \item{covstats}{File(s) with coverage statistics of a metagenomic assembly;
@@ -20,8 +20,11 @@ and output parsed by parse_phylotype_result.pl. (optional)}
 for each SSU. E.g. use get_ssu_for_genome_bin_tools.pl.
 (optional)}
 
+\item{dec}{Decimal separator used in covstats tables. Default is the
+           current locale default found with getOption("OutDec")}
+
 \item{tnra}{Table of tRNA genes found in assembly. Can use the output from
-             tRNAscan-SE directly. (optional)}
+tRNAscan-SE directly. (optional)}
 }
 \value{
 Object of class gbt
