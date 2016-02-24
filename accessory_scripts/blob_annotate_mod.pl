@@ -94,7 +94,7 @@ print STDERR scalar localtime() . " - Loading $taxdump_dir/nodes.dmp and $taxdum
 my $blasttaxid_fh = &read_fh($blasttaxid_file);
 my %contig_taxinfo;
 while (<$blasttaxid_fh>) {
-    die "Contig-taxid file $blasttaxid_file does not seem to have two cols with the seqid in the first col and taxid in the second col" unless 
+    warn "Warning: Contig-taxid file $blasttaxid_file does not seem to have two tab-separated cols with the seqid in the first col and taxid in the second col, at line $.\n" unless 
         /^(\S+)\t(\d+)/;
     $contig_taxinfo{$1} = &taxonomy_report($2);
 }
