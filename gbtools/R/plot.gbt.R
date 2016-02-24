@@ -69,7 +69,7 @@ plot.gbt <- function(x,  # Object of class gbt
                      assemblyName="",  # Assembly name, for plot title only
                      marker=TRUE,  # Display marker color overlay
                      marksource="",  # Which marker source to plot; if empty - default first
-                     markCutoff=0.8, # Weight cutoff for marker overlay
+                     markCutoff=0.99, # Weight cutoff for marker overlay
                      gc=FALSE,  # Diffcov plot only: Color by GC instead of marker
                      ssu=FALSE,  # Overlay SSU markers?
                      trna=FALSE,  # Overlay tRNA markers?
