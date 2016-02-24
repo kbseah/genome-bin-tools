@@ -59,6 +59,7 @@ sub usage {
     print STDERR "\n";
     print STDERR "Options: \n";
     print STDERR " \t -d FILE     Location of SILVA SSU database with taxonomy string, indexed by Vsearch\n";
+    print STDERR " \t             (Current default: $path_to_ssu_db_vsearch)\n";
     print STDERR " \t -c INT      Number of processors for barrnap and Vsearch \(default: 1\)\n";
     print STDERR " \t -a FILE     Genome assembly in Fasta format\n";
     print STDERR " \t -o STRING   Prefix for output files\n";

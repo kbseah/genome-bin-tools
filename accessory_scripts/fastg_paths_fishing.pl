@@ -37,11 +37,11 @@ my %fished_nodes_hash; # Hash of nodes corresponding to fished edges
 ## Usage options #################################
 if (! @ARGV) { usage(); } # Print usage statement if no arguments
 GetOptions (
-    "fastg|g=s" =>\$fastg_file,
-    "paths|p=s" =>\$paths_file,
+    "fastg|g=s" =>\$fastg_file, # Fastg file of assembly graph
+    "paths|p=s" =>\$paths_file, # File scaffold.paths or contigs.paths 
     "output|o=s" =>\$out, # Output prefix
-    "bait|b=s" =>\$bait_file,
-    "rflag|r" =>\$rflag
+    "bait|b=s" =>\$bait_file, # List of scaffold names to fish
+    "rflag|r" =>\$rflag # Report to stdout if called from R
 )
 or usage();
 
@@ -66,12 +66,19 @@ read_fastg();
 perform_fishing_edges();
 translate_fished_edges_to_nodes();
 
-open(my $outlist_fh, ">", $out_path.$out_file.".scafflist") or die ("$!\n");
-foreach my $thenode (sort {$a cmp $b} keys %fished_nodes_hash) {
-    #print STDOUT $scaffolds_fullnames_hash{$thenode}."\t".$fished_nodes_hash{$thenode}."\n";
-    print $outlist_fh $scaffolds_fullnames_hash{$thenode}."\n";
+if ($rflag == 0) { # Save list of fished contigs to file by default
+    open(my $outlist_fh, ">", $out_path.$out_file.".scafflist") or die ("$!\n");
+    foreach my $thenode (sort {$a cmp $b} keys %fished_nodes_hash) {
+        #print STDOUT $scaffolds_fullnames_hash{$thenode}."\t".$fished_nodes_hash{$thenode}."\n";
+        print $outlist_fh $scaffolds_fullnames_hash{$thenode}."\n";
+    }
+    close ($outlist_fh);
+} elsif ($rflag == 1) { # List of fished contigs to STDOUT if called from R function
+    foreach my $thenode (sort {$a cmp $b} keys %fished_nodes_hash) {
+        print STDOUT $scaffolds_fullnames_hash{$thenode}."\n";
+    }
 }
-close ($outlist_fh);
+
 print $outlog_fh "Number of fishing iterations: $iter_count\n";
 print $outlog_fh "Number of fished scaffolds: ". scalar (keys %fished_nodes_hash) ."\n";
 print $outlog_fh "Total number of scaffolds: ". scalar (keys %scaffolds_fullnames_hash). "\n\n";
@@ -95,6 +102,7 @@ sub usage {
     print STDERR "\t -p scaffols.paths \\ \n";
     print STDERR "\t -o output_prefix \\ \n";
     print STDERR "\t -b list_of_bait_scaffolds \\ \n";
+    print STDERR "\t -r [Flag if called from within R] \n";
     print STDERR "\n";
     print STDERR "Output: Logfile (prefix.log) and list of fished scaffolds (prefix.scafflist)\n\n";
     exit;
@@ -158,7 +166,8 @@ sub read_fastg {
 }
 
 sub read_bait_nodes {
-    open(BAITIN, "<", $bait_file) or die ("$!\n");
+    open(BAITIN, "< $bait_file") or die ("$!\n");
+    # Put $bait_file within quotes otherwise - meaning STDIN not recognized (?!?)
     while (<BAITIN>) {
         chomp;
         if ($_ =~ m/NODE_(\d+)/) {
