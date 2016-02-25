@@ -2,7 +2,7 @@
 
 # SPAdes-style Fastg and Scaffold.paths parsing tool
 # Brandon Seah (kbseah@mpi-bremen.de)
-# 2016-02-23
+# 2016-02-25
 
 # Given output from SPAdes:
 #   Fastg assembly graph,
@@ -21,6 +21,7 @@ use Cwd qw(abs_path);
 my $version="2016-02-23";
 my $fastg_file;
 my $paths_file;
+my $iter_depth = 0; # How many fishing iterations (0 = no limit)
 my $iter_count = 0; # Counter for iterations of bait fishing
 my $out="fastg_fishing"; # Output file prefix
 my $bait_file;
@@ -35,10 +36,12 @@ my %edge_fishing_hash; # Hash of edges used for fishing
 my %fished_nodes_hash; # Hash of nodes corresponding to fished edges
 
 ## Usage options #################################
+
 if (! @ARGV) { usage(); } # Print usage statement if no arguments
 GetOptions (
     "fastg|g=s" =>\$fastg_file, # Fastg file of assembly graph
-    "paths|p=s" =>\$paths_file, # File scaffold.paths or contigs.paths 
+    "paths|p=s" =>\$paths_file, # File scaffold.paths or contigs.paths
+    "iter|i=i" =>\$iter_depth, # Number of iterations
     "output|o=s" =>\$out, # Output prefix
     "bait|b=s" =>\$bait_file, # List of scaffold names to fish
     "rflag|r" =>\$rflag # Report to stdout if called from R
@@ -63,7 +66,7 @@ print $outlog_fh "Number of bait scaffolds: ". scalar @bait_nodes_array. "\n";
 print $outlog_fh "Number of corresponding bait edges: ". scalar @bait_edges_array. "\n";
 
 read_fastg();
-perform_fishing_edges();
+perform_fishing_edges($iter_depth);
 translate_fished_edges_to_nodes();
 
 if ($rflag == 0) { # Save list of fished contigs to file by default
@@ -99,16 +102,19 @@ sub usage {
     print STDERR "These files are produced by SPAdes 3.6.2 onwards \n\n";
     print STDERR "Usage: perl $0 \\ \n";
     print STDERR "\t -g assembly_graph.fastg \\ \n";
-    print STDERR "\t -p scaffols.paths \\ \n";
+    print STDERR "\t -p scaffolds.paths \\ \n";
     print STDERR "\t -o output_prefix \\ \n";
     print STDERR "\t -b list_of_bait_scaffolds \\ \n";
+    print STDERR "\t -i [number of fishing iterations] \n";
     print STDERR "\t -r [Flag if called from within R] \n";
     print STDERR "\n";
+    print STDERR "-i 0 means fishing iterates until no more contigs retrieved\n\n";
     print STDERR "Output: Logfile (prefix.log) and list of fished scaffolds (prefix.scafflist)\n\n";
     exit;
 }
 
-sub translate_fished_edges_to_nodes { # Convert list of fished edges to list of nodes
+sub translate_fished_edges_to_nodes {
+    # Convert list of fished edges to list of nodes
     foreach my $theedge (keys %edge_fishing_hash) {
         foreach my $thenode (@{$node_edge_hash{$theedge}}) {
             $fished_nodes_hash{$thenode}++;
@@ -117,26 +123,42 @@ sub translate_fished_edges_to_nodes { # Convert list of fished edges to list of 
 }
 
 sub perform_fishing_edges {
+    my $depth = shift @_; # Iteration depth
+    if ($depth == 0) { # I know this is inelegant
+        $iter_depth = 2;
+    }
     my $init_count=0; # Counter for no. of fished contigs
     my $curr_count=1; # Second counter
-    while ($init_count != $curr_count) { # Loop until iteratively complete
+    while ($iter_count <= $iter_depth-1 # Loop until iteratively complete
+           && $init_count != $curr_count) { # or when fishing is exhausted
         $iter_count++; # Iteration counter
         $init_count=0; # Reset counters for each iterative step
         $curr_count=0;
-        foreach my $fishedge (keys %edge_fishing_hash) { # Count edges marked as bait
-            if (defined $edge_fishing_hash{$fishedge} && $edge_fishing_hash{$fishedge}  == 1) {
+        if ($depth == 0) { # If exhaustive looping,
+            $iter_depth++;  # keep shifting goalposts
+        }
+        # Count edges marked as bait
+        foreach my $fishedge (keys %edge_fishing_hash) { 
+            if (defined $edge_fishing_hash{$fishedge}
+                && $edge_fishing_hash{$fishedge}  == 1) {
                 $init_count++;
             }
         }
-        foreach my $fastg_entry (keys %fastg_hash) { # For all Fastg entries
-            if (defined $edge_fishing_hash{$fastg_entry} && $edge_fishing_hash{$fastg_entry} == 1) { # If edge is listed as a bait
+        # For all Fastg entries
+        foreach my $fastg_entry (keys %fastg_hash) {
+            # If edge is listed as a bait
+            if (defined $edge_fishing_hash{$fastg_entry}
+                && $edge_fishing_hash{$fastg_entry} == 1) { 
                 foreach my $connected_edges (@{$fastg_hash{$fastg_entry}}) {
-                    $edge_fishing_hash{$connected_edges} = 1; # Mark those connected edges as bait
+                    # Mark those connected edges as bait
+                    $edge_fishing_hash{$connected_edges} = 1; 
                 }
             }
         }
-        foreach my $fishedge (keys %edge_fishing_hash) { # Count edges marked as bait after fishing
-            if (defined $edge_fishing_hash {$fishedge} && $edge_fishing_hash {$fishedge} == 1) {
+        # Count edges marked as bait after fishing
+        foreach my $fishedge (keys %edge_fishing_hash) { 
+            if (defined $edge_fishing_hash {$fishedge}
+                && $edge_fishing_hash {$fishedge} == 1) {
                 $curr_count++;
             }
         }
@@ -148,10 +170,12 @@ sub read_fastg {
     open(FASTGIN, "<", $fastg_file) or die ("$!\n"); # Read in Fastg file
     while (<FASTGIN>) {
         chomp;
-        if ($_ =~ m/^>EDGE_(\d+)_.*:(.+);$/) { # If a Fastg header line
+        # If a Fastg header line
+        if ($_ =~ m/^>EDGE_(\d+)_.*:(.+);$/) { 
             my $current_node = $1;
             my $conn_line = $2;
-            $conn_line =~ s/'//g; # Remove inverted commas, which mark revcomp
+            # Remove inverted commas, which mark revcomp
+            $conn_line =~ s/'//g; 
             my @conn_line_array = split ",", $conn_line;
             foreach my $the_header (@conn_line_array) {
                 if ($the_header =~ m/EDGE_(\d+)_/) {
@@ -202,10 +226,14 @@ sub hash_nodes_edges {
     while (<PATHSIN>) {
         chomp;
         my $full_header = $_;
-        if ($full_header =~ m/NODE.*'$/) { # If header for reversed scaffold, ignore
+        # If header for reversed scaffold, ignore
+        if ($full_header =~ m/NODE.*'$/) { 
             $skip_flag = 1;
             next;
-        } elsif ($full_header =~ m/NODE_(\d+)_.*\d+$/) { # If header for forward scaffold...
+            
+        }
+        # If header for forward scaffold...
+        elsif ($full_header =~ m/NODE_(\d+)_.*\d+$/) { 
             $skip_flag = 0; # Turn off skip flag
             $current_node = $1;
             $scaffolds_fullnames_hash{$current_node} = $full_header; # Save full header name
@@ -215,7 +243,8 @@ sub hash_nodes_edges {
             next;
         } else {
             my $edge_line = $_;
-            $edge_line =~ s/[-\+;]//g; # Remove unneeded chars, only interested in edge IDs
+            # Remove unneeded chars, only interested in edge IDs
+            $edge_line =~ s/[-\+;]//g; 
             my @edge_split = split ",", $edge_line;
             foreach my $the_edge (@edge_split) {
                 push @{$node_edge_hash{$the_edge}}, $current_node; # Hash nodes with edges as key

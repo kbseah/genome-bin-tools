@@ -4,7 +4,7 @@
 \alias{fastgFish}
 \title{Perform connectivity fishing with Fastg and paths files from SPAdes 3.6.2+}
 \usage{
-fastgFish(x, bin, fastg.file, paths.file, save, file)
+fastgFish(x, bin, fastg.file, paths.file, depth, save, file, script.path)
 }
 \arguments{
 \item{x}{Object of class gbt (parent object of the gbtbin object)}

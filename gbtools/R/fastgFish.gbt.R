@@ -8,8 +8,10 @@
 #' @param bin Object of class gbtbin, derived from x above
 #' @param fastg.file Fastg formatted assembly graph from SPAdes
 #' @param paths Paths file mapping assembly graph edge names to scaffold/contig names
+#' @param depth Number of fishing iterations (Default: 0 means iterate until no additional contigs recruited)
 #' @param save Logical: Save list of fished contigs to external file? (Default: No)
 #' @param file File name to save list of fished contigs, if save=TRUE
+#' @param script.path Location of the fastg_paths_fishing.pl script 
 #' @return Object of class gbtbin
 #' @export
 
@@ -17,18 +19,19 @@ fastgFish.gbt <- function (x, # Object of class gbt (parent object of the bin)
                               bin, # Object of class gbtbin
                               fastg.file, # Fastg assembly graph
                               paths.file, # scaffolds.paths or contigs.paths file
+                              depth=0, # Number of iterations to fish (Default 0 - exhaustive)
                               save=FALSE, # Save result to external file? Default no
-                              file="fished_bin.list" # File name to save result
+                              file="fished_bin.list", # File name to save result
+                              script.path="/home/kbseah/tools/my_scripts/genome-bin-tools/accessory_scripts/fastg_paths_fishing.pl"
                               ) {
-    ## REPLACE THIS PATH WITH SCRIPT PATH ON YOUR LOCAL SYSTEM #############################################
-    script.path <- "/home/kbseah/tools/my_scripts/genome-bin-tools/accessory_scripts/fastg_paths_fishing.pl"
-    ########################################################################################################
+    script.path=script.path
     command <- "perl"
     command.params <- paste(script.path,
                             "-g", fastg.file,
                             "-p", paths.file,
                             "-o /tmp/tmp.fishing_output",
                             "-b -",
+                            "-i", depth,
                             "-r")
     fished.contigs.list <- system2 (command,
                                     command.params,

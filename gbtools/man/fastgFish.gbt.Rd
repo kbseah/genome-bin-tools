@@ -4,8 +4,9 @@
 \alias{fastgFish.gbt}
 \title{Perform connectivity fishing with Fastg and paths files from SPAdes 3.6.2+}
 \usage{
-\method{fastgFish}{gbt}(x, bin, fastg.file, paths.file, save = FALSE,
-  file = "fished_bin.list")
+\method{fastgFish}{gbt}(x, bin, fastg.file, paths.file, depth = 0,
+  save = FALSE, file = "fished_bin.list",
+  script.path = "/home/kbseah/tools/my_scripts/genome-bin-tools/accessory_scripts/fastg_paths_fishing.pl")
 }
 \arguments{
 \item{x}{Object of class gbt (parent object of the gbtbin object)}
@@ -14,9 +15,13 @@
 
 \item{fastg.file}{Fastg formatted assembly graph from SPAdes}
 
+\item{depth}{Number of fishing iterations (Default: 0 means iterate until no additional contigs recruited)}
+
 \item{save}{Logical: Save list of fished contigs to external file? (Default: No)}
 
 \item{file}{File name to save list of fished contigs, if save=TRUE}
+
+\item{script.path}{Location of the fastg_paths_fishing.pl script}
 
 \item{paths}{Paths file mapping assembly graph edge names to scaffold/contig names}
 }
