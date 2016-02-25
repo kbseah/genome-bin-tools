@@ -317,8 +317,14 @@ plot.gbt <- function(x,  # Object of class gbt
                                                 )
                                      )
                 names(colorframe) <- c("taxon","colors")
+                # Check if any taxa are below cutoff
+                if (dim(subset(colorframe,colors=="grey50"))[1] == 0) {
+                    nogray <- 1
+                } else {
+                    nogray <- 0
+                }
                 colorframe <- subset(colorframe,colors!="grey50")
-                if (highlightTaxon == "") { # Don't add "below cutoff" to legend if only highlighting one taxon
+                if (highlightTaxon == "" && nogray == 0) { # Don't add "below cutoff" to legend if only highlighting one taxon
                     newrow <- c("(below cutoff)","grey50")
                     colorframe <-rbind (colorframe,newrow)
                 }

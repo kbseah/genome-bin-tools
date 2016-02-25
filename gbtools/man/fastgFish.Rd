@@ -4,7 +4,7 @@
 \alias{fastgFish}
 \title{Perform connectivity fishing with Fastg and paths files from SPAdes 3.6.2+}
 \usage{
-fastgFish(x, bin, fastg.file, paths.file, ...)
+fastgFish(x, bin, fastg.file, paths.file, save, file)
 }
 \arguments{
 \item{x}{Object of class gbt (parent object of the gbtbin object)}
@@ -13,11 +13,11 @@ fastgFish(x, bin, fastg.file, paths.file, ...)
 
 \item{fastg.file}{Fastg formatted assembly graph from SPAdes}
 
-\item{paths}{Paths file mapping assembly graph edge names to scaffold/contig names}
-
 \item{save}{Logical: Save list of fished contigs to external file? (Default: No)}
 
 \item{file}{File name to save list of fished contigs, if save=TRUE}
+
+\item{paths}{Paths file mapping assembly graph edge names to scaffold/contig names}
 }
 \value{
 Object of class gbtbin

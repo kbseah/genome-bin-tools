@@ -34,12 +34,12 @@ generatePlotColors2 <- function(scaffold.stats,  # scaff table from gbt object
     ## Make list of top taxa #######################################################
     if (weightCutoff > 1 || weightCutoff < 0) { # Catch errors for weightCutoff
         cat ("gbtools ERROR: weightCutoff parameter must be between 0 and 1\n")
-    }
+    } 
     else {
         # Count taxa which have the highest weight, until weightCutoff
         numAboveCutoff <- length(
                                  which(
-                                       cumsum(taxon.agg.order$x) < weightCutoff*total.weight
+                                       cumsum(taxon.agg.order$x) <= weightCutoff*total.weight
                                        )
                                  )
         numBelowCutoff <- length(

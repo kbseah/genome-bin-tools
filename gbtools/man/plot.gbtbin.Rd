@@ -6,7 +6,7 @@
 \usage{
 \method{plot}{gbtbin}(x, slice = 1, cutoff = 1000, taxon = "Class",
   taxonLevel = "", highlightTaxon = "", assemblyName = "",
-  marker = TRUE, marksource = "", markCutoff = 0.8, gc = FALSE,
+  marker = TRUE, marksource = "", markCutoff = 0.99, gc = FALSE,
   ssu = FALSE, trna = FALSE, consensus = TRUE, legend = FALSE,
   textlabel = FALSE, userAxis = NA, col = "grey", log = "default",
   main = "default", xlab = "default", ylab = "default",

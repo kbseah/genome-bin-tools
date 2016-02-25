@@ -13,4 +13,4 @@
 #' @return Object of class gbtbin
 #' @export
 
-fastgFish <- function (x, bin, fastg.file, paths.file, ... ) UseMethod ("fastgFish") # Define generic for fastgFish function
+fastgFish <- function (x, bin, fastg.file, paths.file, save, file) UseMethod ("fastgFish") # Define generic for fastgFish function
