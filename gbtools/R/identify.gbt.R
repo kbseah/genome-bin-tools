@@ -6,7 +6,8 @@
 #'
 #' @return Object of class gbtbin containing identified contigs
 #' @export
-#' @seealso \code{\link{plot.gbt},\link{choosebin}
+#' @seealso \code{\link{plot.gbt}}
+#' @seealso \code{\link{choosebin}}
 
 identify.gbt <- function(d,
 #' @param d Object of class gbt or gbtbin, in plot
