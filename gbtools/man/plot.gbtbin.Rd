@@ -31,7 +31,7 @@ Details section below)}
 
 \item{marksource}{Specify which marker set to plot (default: first supplied)}
 
-\item{markCutoff}{Length x coverage weight cutoff for colored markers (default: 0.8)}
+\item{markCutoff}{Length x coverage weight cutoff for colored markers (default: 0.99)}
 
 \item{gc}{Color plot by GC% instead of taxon markers? Only used for
 differential coverage plots, i.e. when two values are supplied
