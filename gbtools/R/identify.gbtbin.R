@@ -7,6 +7,7 @@
 #' @return Object of class gbtbin containing identified contigs
 #' @inheritParams identify.gbt
 #' @export
-#' @seealso \code{\link{plot.gbt},\link{choosebin}
+#' @seealso \code{\link{plot.gbt}}
+#' @seealso \code{\link{choosebin}}
 
 identify.gbtbin <- identify.gbt 
