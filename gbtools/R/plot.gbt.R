@@ -34,7 +34,7 @@
 #' @param assemblyName Name of the metagenome, for plot title
 #' @param marker Color plot by taxon markers? (logical, default TRUE)
 #' @param marksource Specify which marker set to plot (default: first supplied)
-#' @param markCutoff Length x coverage weight cutoff for colored markers (default: 0.8)
+#' @param markCutoff Length x coverage weight cutoff for colored markers (default: 0.99)
 #' @param highlightTaxon Color markers affiliated to specified taxon only (default: "")
 #' @param gc Color plot by GC% instead of taxon markers? Only used for
 #'            differential coverage plots, i.e. when two values are supplied
