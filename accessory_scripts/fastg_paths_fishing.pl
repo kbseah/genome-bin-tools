@@ -1,20 +1,95 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+fastg_paths_fishing.pl - Retrieve connected contigs with assembly graph connectivity
+
+=head1 SYNOPSIS
+
+perl fastg_paths_fishing.pl -g <assemblygraph.fastg> -p <scaffolds.paths>
+ -o <output prefix> -b <bait list> -i <num iterations> -r <flag for R>
+ 
+perl fastg_paths_fishing.pl --help
+
+=head1 DESCRIPTION
+
+Finds contigs connected to a set of "bait" contigs, using Fastg-formatted
+assembly graph file and a corresponding "paths" file that matches scaffold
+names to graph edge IDs. These files are produced by the assembler SPAdes
+3.6.2+. 
+
+For more information, refer to gbtools documentation.
+
+Part of the gbtools package by Brandon Seah:
+https://github.com/kbseah/genome-bin-tools/
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --fastg|-g <file>
+
+Assembly graph in Fastg format produced by SPAdes 3.6.2+. The Fastg files
+produced by previous SPAdes versions are not compatible. Fastg files
+produced by other assemblers have not been tested.
+
+=item --paths|-p <file>
+
+Paths file (e.g. scaffold.paths or contig.paths) produced by assembler,
+that matches scaffold/contig names to edge IDs in the assembly graph, as
+a single scaffold/contig may comprise more than one edge.
+
+=item --output|-o <string>
+
+Prefix for output file names
+
+=item --iter|-i <integer>
+
+Number of iterations. With each iteration, the contigs/scaffolds connected
+to the current set of contigs are recruited to the current set. Fewer
+iterations will retrieve only closer-connected contigs. If --iter is set to 0,
+then iterate until no additional contigs can be recruited. Default: 0
+
+=item --bait|-b <file>
+
+File with list of contigs/scaffold names to use as "bait" for connectivity
+fishing, one name per line, must match names in paths file.
+
+=item --rflag|-r
+
+Flag used by R function fastgFish() in gbtools library. Ignore if calling the
+script independently of the R workspace.
+
+=back
+
+=head1 OUTPUT
+
+=over 8
+
+=item <output_prefix>.log
+
+Log file of run
+
+=item <output_prefix>.scafflist
+
+List of retrieved contigs.
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+=cut
+
 # SPAdes-style Fastg and Scaffold.paths parsing tool
 # Brandon Seah (kbseah@mpi-bremen.de)
 # 2016-02-25
-
-# Given output from SPAdes:
-#   Fastg assembly graph,
-#   scaffolds.paths (or contigs.paths) file (from SPAdes 3.6.2 onwards)
-# And shortlist of scaffold IDs
-# Return list of scaffolds connected to the initial list
 
 use warnings;
 use strict;
 use Getopt::Long;
 use File::Basename;
 use Cwd qw(abs_path);
+use Pod::Usage;
 
 ## Global variables ##############################
 
@@ -37,14 +112,19 @@ my %fished_nodes_hash; # Hash of nodes corresponding to fished edges
 
 ## Usage options #################################
 
-if (! @ARGV) { usage(); } # Print usage statement if no arguments
+if (! @ARGV) { # Print usage statement if no arguments
+    pod2usage(-message => "Insufficient options were supplied", -existatus => 2);
+} 
+
 GetOptions (
     "fastg|g=s" =>\$fastg_file, # Fastg file of assembly graph
     "paths|p=s" =>\$paths_file, # File scaffold.paths or contigs.paths
     "iter|i=i" =>\$iter_depth, # Number of iterations
     "output|o=s" =>\$out, # Output prefix
     "bait|b=s" =>\$bait_file, # List of scaffold names to fish
-    "rflag|r" =>\$rflag # Report to stdout if called from R
+    "rflag|r" =>\$rflag, # Report to stdout if called from R
+    "help|h" => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
+    "man|m"=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
 )
 or usage();
 

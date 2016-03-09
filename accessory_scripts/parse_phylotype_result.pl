@@ -1,5 +1,44 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+parse_phylotype_result.pl - Parse results from Amphora2 or Phyla-Amphora pipelines for gbtools
+
+=head1 SYNOPSIS
+
+perl parse_phylotype_result.pl -p <amphora2_phylotype> > phylotype.parsed
+
+perl parse_phylotype_result.pl --help
+
+=head1 DESCRIPTION
+
+Parse phylotype result table from Amphora2 or Phyla-Amphora pipelines to format
+for import to gbtools in R. 
+
+For more information, refer to gbtools documentation.
+
+Part of the gbtools package by Brandon Seah:
+https://github.com/kbseah/genome-bin-tools/
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --phylotypes|-p <file>
+
+Result of Phylotyping.pl script from Amphora2 or Phyla-Amphora pipelines.
+
+=back
+
+=head1 OUTPUT
+
+Output is written to STDOUT.
+
+=head1 COPYRIGHT AND LICENSE
+
+=cut
+
+
 ## Script to parse AMPHORA2 or Phyla-AMPHORA marker phylotyping info to a format that can be imported to R
 ## after the style of Albertsen et al.
 
@@ -11,6 +50,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Pod::Usage;
 
 my $phylotyping_result;   # File with results of AMPHORA2 or Phyla-AMPHORA Phylotyping.pl results
 my %marker_name_hash;     # Hash for gene name, marker ID as key
@@ -20,11 +60,15 @@ my $taxon_level=4;        # Which taxonomic level should we parse the output? 1=
 
 ## MAIN #######################################################################
 
-if (@ARGV == 0) { usage(); }
+if (@ARGV == 0) {
+    pod2usage(-message => "Insufficient options were supplied", -existatus => 2);
+}
 
 GetOptions (
     "phylotypes|p=s" => \$phylotyping_result,
-    "level|l=i" => \$taxon_level
+    "level|l=i" => \$taxon_level,
+    'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
+    'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
 );
 
 #if ($taxon_level > 7) {    # Catch smart-asses

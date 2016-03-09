@@ -1,15 +1,88 @@
 #!/usr/bin/env perl
 
-## Tool to extract SSU data and phylogenetic affiliation from new assemblies and parse output to a format to import into R
-## Plays with genome_bin_tools.r functions
-## Incorporates code from phyloFlash version 1.5d by Harald Gruber-Vodicka
+=head1 NAME
 
-## Prerequisites:
-##      Vsearch
-##      Barrnap 0.5
-##      Bedtools 2.21.0
+get_ssu_for_genome_bin_tools.pl - Extract SSU data and taxonomy and parse for gbtools
+
+=head1 SYNOPSIS
+
+perl get_ssu_for_genome_bin_tools.pl -d <db path> -c <num CPUs> -a <fasta file> -o <output prefix>
+
+perl get_ssu_for_genome_bin_tools.pl --help
+
+=head1 DESCRIPTION
+
+Extracts SSU rRNA sequence from metagenome assembly in Fasta file, classifies
+taxonomically by comparison to Vsearch-indexed and curated SILVA database
+(produced by the PhyloFlash v1.5d+ by Harald Gruber-Vodicka) and parses into
+a table that can be imported by gbtools in R.
+
+Dependencies: Vsearch, barrnap 0.5+, bedtools 2.21.0+
+
+For more information, refer to gbtools documentation.
+
+Part of the gbtools package by Brandon Seah:
+https://github.com/kbseah/genome-bin-tools/
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --dbpath|-d <path>
+
+Path to Vsearch-indexed, curated SILVA database of SSU rRNA sequences.
+
+=item --cpus|-c <integer>
+
+Number of processors for barrnap and Vsearch (default: 1)
+
+=item --assembly|-a <file>
+
+Fasta file of genome/metagenome sequences to search.
+
+=item --output|-o <string>
+
+Prefix for output file names.
+
+=item --help|-h
+
+Show this help message.
+
+=back
+
+=head1 OUTPUT
+
+=over 8
+
+=item <output_prefix>.ssu.tab
+
+Table of predicted SSU genes and their taxonomic affiliations
+
+=item tmp.<output_prefix>.scaffolds.gff
+
+Concatenated output from Barrnap searches
+
+=item <output_prefix>.barrnap.ssu.gff
+
+Predicted SSU genes, with duplicates removed, GFF feature table
+
+=item <output_prefix>.barrnap.ssu.fasta
+
+Fasta formatted sequences of SSU genes predicted by Barrnap
+
+=item <output_prefix>.barrnap.ssu.usearch.out
+
+Usearch results of predicted SSU sequences from assembly vs. Silva database
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+=cut
+
 
 ## Contact: kbseah@mpi-bremen.de
+## Version 4 - 2016-03-09 - Add perldoc documentation
 ## Version 3 - 2016-02-19 - Fix tmp filename breaks when path given in output prefix
 ## Version 2 - 2015-06-19 - Use Vsearch instead of Usearch, to be able to use latest phyloFlash dbs
 ## Version 1 - 2014-10-27
@@ -19,6 +92,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 use File::Basename;
+use Pod::Usage;
 
 my $path_to_ssu_db = "/data/db/phyloFlash_dev/old/phyloFlash_1.5/SSURef_NR99_119_for_phyloFlash.udb"; # Deprecated, keep for testing
 my $path_to_ssu_db_vsearch = "/data/db/phyloFlash_dev/phyloFlash/119/SILVA_SSU.noLSU.masked.trimmed.fasta";
@@ -30,13 +104,17 @@ my $output_prefix;  # Prefix for output files and intermediate files
 my %uniq_pred_hash; # Hash to make sure that each scaffold only contains at most one SSU prediction
 my %SSU_assembly;   # Hash to store output from parsing Usearch results
 
-if (@ARGV == 0 ) { usage(); }
+if (@ARGV == 0 ) {
+    pod2usage(-message => "Insufficient options were supplied", -existatus => 2);
+}
 
 GetOptions (
     'dbpath|d=s' => \$path_to_ssu_db_vsearch,
     'cpus|c=i' => \$cpus,
     'assembly|a=s' => \$assem_file,
     'output|o=s' => \$output_prefix,
+    'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
+    'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
     #'taxlevel|t=i' => \$taxon_level
 );
 

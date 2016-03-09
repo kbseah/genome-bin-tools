@@ -1,27 +1,74 @@
 #!/usr/bin/env perl
 
-# Given a list of fasta files representing genome bins from a metagenome
-# Parse the Fasta headers to make a table of which contig belongs to which bin (allowing overlaps)
-# And this table can be imported to gbtools to automatically create bins
+=head1 NAME
+
+parse_bin_fasta_files.pl - Parse list of Fasta files and bin names for gbtools
+
+=head1 SYNOPSIS
+
+perl parse_bin_fasta_files.pl -i <input> -o <output>
+
+perl parse_bin_fasta_files.pl --help
+
+=head1 DESCRIPTION
+
+Parse headers from Fasta files corresponding to genome bins (e.g. output of
+MetaBat or MetaWatt pipelines) to a table for import to gbtools.
+
+For more information, refer to gbtools documentation.
+
+Part of the gbtools package by Brandon Seah:
+https://github.com/kbseah/genome-bin-tools/
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --input|-i <file>
+
+Tab-separated file. Column 1 is path to Fasta files that correspond to genome
+bins, and column 2 is shortname for the genome bin.
+
+=item --output|-o <file>
+
+Name for output file. 
+
+=back
+
+=head1 OUTPUT
+
+Tab-separated file, each line with name of contig and name of corresponding
+genome bin.
+
+=head1 COPYRIGHT AND LICENSE
+
+=cut
 
 use strict;
 use warnings;
 use Getopt::Long;
+use Pod::Usage;
 
 my $input_table = "";
 my $output_file = "";
 my %fasta_hash;
 my %contig_HoA;
 
+if (@ARGV == 0 ) {
+    pod2usage(-message => "Insufficient options were supplied", -existatus => 2);
+}
+
 GetOptions (
     "input|i=s" =>\$input_table,
     "output|o=s" =>\$output_file,
+    'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
+    'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
 );
 
 ## MAIN #######################################################################
 
 if ($input_table eq "") {
-    usage();
+    pod2usage(-message => "Input table not supplied", -exitstatus => 2, -verbose => 2);
 }
 else {
     read_table();
