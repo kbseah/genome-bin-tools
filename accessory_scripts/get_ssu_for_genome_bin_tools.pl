@@ -78,11 +78,28 @@ Usearch results of predicted SSU sequences from assembly vs. Silva database
 
 =head1 COPYRIGHT AND LICENSE
 
+gbtools - Interactive tools for metagenome visualization and binning in R
+Copyright (C) 2015,2016  Brandon Seah (kbseah@mpi-bremen.de)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 =cut
 
 
 ## Contact: kbseah@mpi-bremen.de
-## Version 4 - 2016-03-09 - Add perldoc documentation
+## Version 4 - 2016-03-09 - Documentation to POD
 ## Version 3 - 2016-02-19 - Fix tmp filename breaks when path given in output prefix
 ## Version 2 - 2015-06-19 - Use Vsearch instead of Usearch, to be able to use latest phyloFlash dbs
 ## Version 1 - 2014-10-27
