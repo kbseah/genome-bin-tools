@@ -121,7 +121,7 @@ my $output_prefix;  # Prefix for output files and intermediate files
 my %uniq_pred_hash; # Hash to make sure that each scaffold only contains at most one SSU prediction
 my %SSU_assembly;   # Hash to store output from parsing Usearch results
 
-if (@ARGV == 0 ) {
+if (! @ARGV) {
     pod2usage(-message => "Insufficient options were supplied", -existatus => 2);
 }
 
@@ -133,7 +133,7 @@ GetOptions (
     'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
     'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
     #'taxlevel|t=i' => \$taxon_level
-);
+) or pod2usage(-message => "Error in input arguments", -existatus => 2);
 
 my ($output_prefix_file, $output_prefix_path) = fileparse ($output_prefix);
     # Parse output prefix to filename and path, in case not in current folder
