@@ -51,7 +51,7 @@ gbtbin.default <- function(shortlist,  # Character vector, contigs to extract fr
     if (is.data.frame(x$markTab)) {
         markTab.subset <- subset(x$markTab,scaffold%in% shortlist)
         for (j in 1:length(marksource)) {
-            markTab.subsubset <- subset(markTab.subset,source==marksource[j])
+            markTab.subsubset <- droplevels(subset(markTab.subset,source==marksource[j]))
             bin.nummarkers[j] <- dim(markTab.subsubset)[1]
             marker.tab[[j]] <- table(markTab.subsubset$gene)
             bin.uniqmarkers[j] <- length(which(marker.tab[[j]] > 0))
