@@ -197,12 +197,19 @@ msg ("Writing log file to $outdir/input_validator.log", 1);
 
 # Dump message stack into log file
 my $msgs  = Log::Message::Simple->stack_as_string;
-open(LOGOUT, ">>", "$outdir/input_validator.log")
-    or error ("Cannot open log file for writing. $!", 1);
-print LOGOUT $msgs;
-print LOGOUT "\n\n";
-close(LOGOUT);
-
+if (defined $outdir) {
+    open(LOGOUT, ">>", "$outdir/input_validator.log")
+        or error ("Cannot open log file for writing. $!", 1);
+    print LOGOUT $msgs;
+    print LOGOUT "\n\n";
+    close(LOGOUT);
+} else {
+    open(LOGOUT, ">>", "input_validator.log")
+        or error("Cannot open log file for writing: $!",1);
+    print LOGOUT $msgs;
+    print LOGOUT "\n\n";
+    close(LOGOUT);
+}
 
 ## SUBROUTINES ################################################################
 
