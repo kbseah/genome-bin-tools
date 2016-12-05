@@ -82,6 +82,11 @@ Problems with using `gbtools`? Create a new issue using the GitHub issue-tracker
 
 Problems with input file formats? Read [the appendix](Appendix.\ Input\ file\ formats) and use the `input_validator.pl` script to check your input files.
 
+## Paper(s) using `gbtools`
+Petersen et al. 2016. [Nature Microbiology 2: 16195.](http://www.nature.com/articles/nmicrobiol2016195)
+
+Drop me a message if I've overlooked your publication(s)!
+
 ## Citations 
 
 Citation:
