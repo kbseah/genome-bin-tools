@@ -164,6 +164,7 @@ print $outlog_fh "Script called: $0 \n";
 print $outlog_fh "Version: $version\n";
 print $outlog_fh scalar localtime() ."\n\n";
 
+hash_scaffold_names();
 hash_nodes_edges();
 read_bait_nodes();
 #read_bait_edges(); # For checking
@@ -325,6 +326,20 @@ sub read_bait_edges { # For checking
     close(BAITIN);
 }
 
+sub hash_scaffold_names {
+    open(SCAFFIN, "<", $scaffolds_file) or die ("Cannot open scaffold or contigs Fasta file $!");
+    while (<SCAFFIN>) {
+        chomp;
+        if ($_ =~ m/^>NODE_(\d+)_.*/) {
+            my $nodeid = $1; # Extract node ID number
+            my $header = $_; 
+            $header =~ s/^>//; # Remove angle-bracket
+            $scaffolds_fullnames_hash{$nodeid} = $header; # Associate node ID with header
+        }
+    }
+    close(SCAFFIN);
+}
+
 sub hash_nodes_edges {
     open(PATHSIN, "<", $paths_file) or die ("Cannot open scaffold or contig paths file $!\n");
     my $skip_flag = 0;
@@ -342,7 +357,7 @@ sub hash_nodes_edges {
         elsif ($full_header =~ m/NODE_(\d+)_.*\d+$/) { 
             $skip_flag = 0; # Turn off skip flag
             $current_node = $1;
-            $scaffolds_fullnames_hash{$current_node} = $full_header; # Save full header name
+            #$scaffolds_fullnames_hash{$current_node} = $full_header; # Save full header name
             next;
         }
         if ($skip_flag == 1) {
