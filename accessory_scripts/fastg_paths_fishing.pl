@@ -39,6 +39,12 @@ Paths file (e.g. scaffold.paths or contig.paths) produced by assembler,
 that matches scaffold/contig names to edge IDs in the assembly graph, as
 a single scaffold/contig may comprise more than one edge.
 
+=item --scaffolds|-s <file>
+
+Fasta file containing scaffolds (e.g. scaffolds.paths or contigs.paths)
+produced by assembler. Necessary because the header names in the paths file
+do not always match the scaffold names exactly.
+
 =item --output|-o <string>
 
 Prefix for output file names
@@ -52,7 +58,7 @@ then iterate until no additional contigs can be recruited. Default: 0
 
 =item --bait|-b <file>
 
-File with list of contigs/scaffold names to use as "bait" for connectivity
+File with list of scaffold/contig names to use as "bait" for connectivity
 fishing, one name per line, must match names in paths file.
 
 =item --rflag|-r
@@ -138,6 +144,7 @@ if (! @ARGV) { # Print usage statement if no arguments
 GetOptions (
     "fastg|g=s" =>\$fastg_file, # Fastg file of assembly graph
     "paths|p=s" =>\$paths_file, # File scaffold.paths or contigs.paths
+    "scaffolds|s=s" => \$scaffolds_file, # File scaffolds.fasta or contigs.fasta
     "iter|i=i" =>\$iter_depth, # Number of iterations
     "output|o=s" =>\$out, # Output prefix
     "bait|b=s" =>\$bait_file, # List of scaffold names to fish
