@@ -111,14 +111,16 @@ use Pod::Usage;
 ## Global variables ##############################
 
 my $version="2016-02-23";
-my $fastg_file;
-my $paths_file;
+# Input files
+my ($fastg_file, $paths_file, $scaffolds_file, $bait_file);
+# Iteration parameters
 my $iter_depth = 0; # How many fishing iterations (0 = no limit)
 my $iter_count = 0; # Counter for iterations of bait fishing
+# Output control
 my $out="fastg_fishing"; # Output file prefix
-my $bait_file;
 my $rflag=0; # Flag if script called from within R
-my %scaffolds_fullnames_hash;
+# Hashes and arrays
+my %scaffolds_fullnames_hash; # Full headers of scaffolds 
 my @bait_nodes_array;
 my @bait_edges_array;
 my %node_edge_hash; # Hash of nodes keyed by edges
