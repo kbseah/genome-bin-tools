@@ -4,7 +4,7 @@
 \alias{fastgFish.gbt}
 \title{Perform connectivity fishing with Fastg and paths files from SPAdes 3.6.2+}
 \usage{
-\method{fastgFish}{gbt}(x, bin, fastg.file, paths.file, depth = 0,
+\method{fastgFish}{gbt}(x, bin, fastg.file, paths.file, fasta.file, depth = 0,
   save = FALSE, file = "fished_bin.list",
   script.path = "/home/kbseah/tools/my_scripts/genome-bin-tools/accessory_scripts/fastg_paths_fishing.pl")
 }
@@ -13,7 +13,11 @@
 
 \item{bin}{Object of class gbtbin, derived from x above}
 
-\item{fastg.file}{Fastg formatted assembly graph from SPAdes}
+\item{fastg.file}{Fastg formatted assembly graph from SPAdes (assembly_graph.fastg)}
+
+\item{paths.file}{Paths file mapping assembly graph edge names to scaffold/contig names (scaffolds.paths or contigs.paths)}
+
+\item{fasta.file}{Fasta file containing scaffolds/contigs of this assembly (scaffolds.fasta or contigs.fasta)}
 
 \item{depth}{Number of fishing iterations (Default: 0 means iterate until no additional contigs recruited)}
 
@@ -22,15 +26,13 @@
 \item{file}{File name to save list of fished contigs, if save=TRUE}
 
 \item{script.path}{Location of the fastg_paths_fishing.pl script}
-
-\item{paths}{Paths file mapping assembly graph edge names to scaffold/contig names}
 }
 \value{
 Object of class gbtbin
 }
 \description{
 Find contigs connected to a given gbtbin and report a new gbtbin object
-Requires Fastg and paths files produced by SPAdes 3.6.2+; old version of
+Requires Fastg and paths files produced by SPAdes 3.6.2+; older versions of
 SPAdes produces different format.
 }
 
