@@ -24,7 +24,7 @@
 #' and user-value set 2 as Y-axis: userAxis=c("gc",2). If "cov" specified, it
 #' will take the coverage set that is given by the slice= parameter (default
 #' is the first set of coverage data).
-#' 
+#'
 #' @param x Object of class gbt or gbtbin
 #' @param slice For plotting coverage data, which sample to use? (see
 #'               Details section below)
@@ -35,6 +35,14 @@
 #' @param marker Color plot by taxon markers? (logical, default TRUE)
 #' @param marksource Specify which marker set to plot (default: first supplied)
 #' @param markCutoff Length x coverage weight cutoff for colored markers (default: 0.99)
+#' @param markCustomPalette (Optional) Assign colors to use for markers
+#'                           belonging to specific taxa. This must be a data
+#'                           frame with taxon names in column 1, and color names
+#'                           (English or hex codes) in column 2. Taxa that are
+#'                           not represented in the gbt object will be ignored.
+#'                           Taxa not in this table will be colored grey. If
+#'                           custom colors are specified, then the markCutoff
+#'                           parameter will be ignored. (default: 0)
 #' @param highlightTaxon Color markers affiliated to specified taxon only (default: "")
 #' @param gc Color plot by GC% instead of taxon markers? Only used for
 #'            differential coverage plots, i.e. when two values are supplied

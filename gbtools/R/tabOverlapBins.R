@@ -18,7 +18,7 @@
 #'
 
 
-tabOverlapBins <- function(x, # First list of gbtbin objects 
+tabOverlapBins <- function(x, # First list of gbtbin objects
                            y, # Second list of gbtbin objects
                            binNames.x="", # list of names for x. Default -- number sequentially
                            binNames.y="", # list of names for y
@@ -48,7 +48,7 @@ tabOverlapBins <- function(x, # First list of gbtbin objects
                     counts <- c(counts, curr.count) # Append count of overlaps
                     countsA <- c(countsA, curr.count / length(x[[i]]$scaff$ID)) # As fraction of bin x
                     countsB <- c(countsB, curr.count / length(y[[j]]$scaff$ID)) # As fraction of bin y
-                    
+
                 }
             }
             counts.matrix <- matrix(counts, byrow=TRUE, nrow=length(x), dimnames=list(binNames.x,binNames.y))
@@ -73,7 +73,7 @@ tabOverlapBins <- function(x, # First list of gbtbin objects
                     lens <- c(lens, curr.len)
                     lensA <- c(lensA, curr.len / sum(x[[i]]$scaff$Length))
                     lensB <- c(lensB, curr.len / sum(y[[j]]$scaff$Length))
-                    
+
                 }
             }
             lens.matrix <- matrix(lens,byrow=TRUE,nrow=length(x),dimnames=list(binNames.x,binNames.y))
@@ -82,7 +82,7 @@ tabOverlapBins <- function(x, # First list of gbtbin objects
             if (by=="x") {
                 return (lensA.matrix)
             } else if (by=="y") {
-                return (lensB.matrix) 
+                return (lensB.matrix)
             } else if (by=="raw") {
                 return(lens.matrix)
             } else {
