@@ -6,11 +6,11 @@
 \usage{
 \method{plot}{gbtbin}(x, slice = 1, cutoff = 1000, taxon = "Class",
   taxonLevel = "", highlightTaxon = "", assemblyName = "",
-  marker = TRUE, marksource = "", markCutoff = 0.99, gc = FALSE,
-  ssu = FALSE, trna = FALSE, consensus = TRUE, legend = FALSE,
-  textlabel = FALSE, userAxis = NA, col = "grey", log = "default",
-  main = "default", xlab = "default", ylab = "default",
-  symbolScale = "area", symbolScaleParam = 100, ...)
+  marker = TRUE, marksource = "", markCutoff = 0.99,
+  markCustomPalette = 0, gc = FALSE, ssu = FALSE, trna = FALSE,
+  consensus = TRUE, legend = FALSE, textlabel = FALSE, userAxis = NA,
+  col = "grey", log = "default", main = "default", xlab = "default",
+  ylab = "default", symbolScale = "area", symbolScaleParam = 100, ...)
 }
 \arguments{
 \item{x}{Object of class gbt or gbtbin}

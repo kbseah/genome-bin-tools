@@ -70,6 +70,7 @@ plot.gbt <- function(x,  # Object of class gbt
                      marker=TRUE,  # Display marker color overlay
                      marksource="",  # Which marker source to plot; if empty - default first
                      markCutoff=0.99, # Weight cutoff for marker overlay
+                     markCustomPalette=0, # Custom palette for marker taxons (Experimental)
                      gc=FALSE,  # Diffcov plot only: Color by GC instead of marker
                      ssu=FALSE,  # Overlay SSU markers?
                      trna=FALSE,  # Overlay tRNA markers?
@@ -294,7 +295,7 @@ plot.gbt <- function(x,  # Object of class gbt
             }
             ## Overlay markers ###############################################
             markTabTemp <- subset(x$markTab,source==marksource)
-            mark.stats <- generatePlotColors2(X,markTabTemp,taxon,consensus,markCutoff)
+            mark.stats <- generatePlotColors2(X,markTabTemp,taxon,consensus,markCutoff,markCustomPalette)
             if (highlightTaxon != "") { ## Highlight specific taxon ##############
                 # Subset mark.stats to keep only the specified taxon
                 mark.stats <- mark.stats[which(mark.stats$taxon==highlightTaxon),]

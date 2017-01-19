@@ -4,7 +4,8 @@
 \alias{generatePlotColors2}
 \title{Generates colors for marker gene phylotypes in plot by cumulative weight}
 \usage{
-generatePlotColors2(scaffold.stats, marker.list, taxon, consensus, weightCutoff)
+generatePlotColors2(scaffold.stats, marker.list, taxon, consensus, weightCutoff,
+  markCustomPalette)
 }
 \arguments{
 \item{scaffold.stats}{Scaff table from gbt object}
