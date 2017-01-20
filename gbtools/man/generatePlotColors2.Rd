@@ -17,6 +17,8 @@ generatePlotColors2(scaffold.stats, marker.list, taxon, consensus, weightCutoff,
 \item{consensus}{Logical - if taxon assignments conflict, take consensus?}
 
 \item{weightCutoff}{Cutoff quantile for contig length*coverage weight (between 0 and 1)}
+
+\item{markCustomPalette}{(Optional) data.frame with taxon names (column 1) and specific colors (column 2) to assign to them}
 }
 \value{
 data.frame with color assignments for each scaffold

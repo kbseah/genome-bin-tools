@@ -33,6 +33,15 @@ Details section below)}
 
 \item{markCutoff}{Length x coverage weight cutoff for colored markers (default: 0.99)}
 
+\item{markCustomPalette}{(Optional) Assign colors to use for markers
+belonging to specific taxa. This must be a data
+frame with taxon names in column 1, and color names
+(English or hex codes) in column 2. Taxa that are
+not represented in the gbt object will be ignored.
+Taxa not in this table will be colored grey. If
+custom colors are specified, then the markCutoff
+parameter will be ignored. (default: 0)}
+
 \item{gc}{Color plot by GC% instead of taxon markers? Only used for
 differential coverage plots, i.e. when two values are supplied
 to the slice parameter. (logical, default FALSE)}

@@ -4,9 +4,14 @@ Refer to the [`gbtools` manual](https://github.com/kbseah/genome-bin-tools/wiki)
 
 Read the [paper](http://journal.frontiersin.org/article/10.3389/fmicb.2015.01451/abstract) published in Frontiers in Microbiology
 
+## News
+
+ * You can now specify custom colors for taxonomic markers in plots with the `markCustomPalette=` parameter in the `plot` function (v. 2.5.8)
+ * Bug in Fastg-fishing script caused by inconsistent SPAdes header names has been fixed (v. 2.5.7)
+
 ## Quick start
 
-Here are the bare basics that you can do in `gbtools`, using the Olavius example data (look in the `example_data/Olavius_metagenome` folder in this package). 
+Here are the bare basics that you can do in `gbtools`, using the Olavius example data (look in the `example_data/Olavius_metagenome` folder in this package).
 
 The following commands are all in the R environment.
 
@@ -37,7 +42,7 @@ See summary stats by typing name of the `gbt` object
 
 ### 3. Plot coverage vs. GC
 
-```R 
+```R
  > plot (d, # Plots the first set of coverage data by default
  +       ssu=TRUE, # Annotate SSU genes with crosshairs
  +       textlabels=TRUE, # Add labels for SSU genes
@@ -87,7 +92,7 @@ Petersen et al. 2016. [Nature Microbiology 2: 16195.](http://www.nature.com/arti
 
 Drop me a message if I've overlooked your publication(s)!
 
-## Citations 
+## Citations
 
 Citation:
 Seah BK and Gruber-Vodicka HR (2015). gbtools: Interactive visualization of metagenome bins in R. Front. Microbiol. 6:1451. [doi: 10.3389/fmicb.2015.01451](http://journal.frontiersin.org/article/10.3389/fmicb.2015.01451/abstract)
