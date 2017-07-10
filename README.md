@@ -89,6 +89,7 @@ Problems with input file formats? Read [the appendix](Appendix.\ Input\ file\ fo
 
 ## Paper(s) using `gbtools`
 Petersen et al. 2016. [Nature Microbiology 2: 16195.](http://www.nature.com/articles/nmicrobiol2016195)
+
 Rubin-Blum et al. 2017. [Nature Microbiology 2: 17093.](http://http://www.nature.com/articles/nmicrobiol201793)
 
 Drop me a message if I've overlooked your publication(s)!
