@@ -6,7 +6,8 @@ get_ssu_for_genome_bin_tools.pl - Extract SSU data and taxonomy and parse for gb
 
 =head1 SYNOPSIS
 
-perl get_ssu_for_genome_bin_tools.pl -d <db path> -c <num CPUs> -a <fasta file> -o <output prefix>
+perl get_ssu_for_genome_bin_tools.pl -d path/to/db -c num_CPUs \
+                                     -a scaffolds.fasta -o output_prefix
 
 perl get_ssu_for_genome_bin_tools.pl --help
 
@@ -28,19 +29,19 @@ https://github.com/kbseah/genome-bin-tools/
 
 =over 8
 
-=item --dbpath|-d <path>
+=item --dbpath|-d I<PATH>
 
 Path to Vsearch-indexed, curated SILVA database of SSU rRNA sequences.
 
-=item --cpus|-c <integer>
+=item --cpus|-c I<INTEGER>
 
 Number of processors for barrnap and Vsearch (default: 1)
 
-=item --assembly|-a <file>
+=item --assembly|-a I<FILE>
 
 Fasta file of genome/metagenome sequences to search.
 
-=item --output|-o <string>
+=item --output|-o I<STRING>
 
 Prefix for output file names.
 
@@ -79,7 +80,7 @@ Usearch results of predicted SSU sequences from assembly vs. Silva database
 =head1 COPYRIGHT AND LICENSE
 
 gbtools - Interactive tools for metagenome visualization and binning in R
-Copyright (C) 2015,2016  Brandon Seah (kbseah@mpi-bremen.de)
+Copyright (C) 2015-2018  Brandon Seah (kbseah@mpi-bremen.de)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -96,14 +97,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 =cut
-
-
-## Contact: kbseah@mpi-bremen.de
-## Version 4 - 2016-03-09 - Documentation to POD
-## Version 3 - 2016-02-19 - Fix tmp filename breaks when path given in output prefix
-## Version 2 - 2015-06-19 - Use Vsearch instead of Usearch, to be able to use latest phyloFlash dbs
-## Version 1 - 2014-10-27
-## Version 0 - 2014-10-23
 
 use strict;
 use warnings;
@@ -144,30 +137,6 @@ do_vsearch();
 parse_usearch_output();
 
 ## SUBROUTINES #################################################################################################
-
-sub usage {
-    print STDERR "\n";
-    print STDERR "Extract SSU from assembly, search against Silva SSU database, and parse taxonomy output\n";
-    print STDERR "\n";
-    print STDERR "Usage: \n";
-    print STDERR " \$ perl get_ssu_for_genome_bin_tools.pl -d <path_to_ssu_db> -c <CPUs> -a <assembly.fasta> -o <output_prefix> \n";
-    print STDERR "\n";
-    print STDERR "Options: \n";
-    print STDERR " \t -d FILE     Location of SILVA SSU database with taxonomy string, indexed by Vsearch\n";
-    print STDERR " \t             (Current default: $path_to_ssu_db_vsearch)\n";
-    print STDERR " \t -c INT      Number of processors for barrnap and Vsearch \(default: 1\)\n";
-    print STDERR " \t -a FILE     Genome assembly in Fasta format\n";
-    print STDERR " \t -o STRING   Prefix for output files\n";
-    print STDERR "\n";
-    print STDERR "Output: \n";
-    print STDERR " \t <output_prefix>.ssu.tab                 Table of predicted SSU genes and their taxonomic affiliations\n";
-    print STDERR " \t tmp.<output_prefix>.scaffolds.gff       Concatenated output from Barrnap searches\n";
-    print STDERR " \t <output_prefix>.barrnap.ssu.gff         Predicted SSU genes, with duplicates removed, GFF feature table\n";
-    print STDERR " \t <output_prefix>.barrnap.ssu.fasta       Fasta formatted sequences of SSU genes predicted by Barrnap\n";
-    print STDERR " \t <output_prefix>.barrnap.ssu.usearch.out Usearch results of predicted SSU sequences from assembly vs. Silva database\n";
-    print STDERR "\n";
-    exit;
-}
 
 sub do_barrnap {
     ## for microbial SSU ######################################################

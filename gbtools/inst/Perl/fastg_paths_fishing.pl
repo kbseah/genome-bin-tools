@@ -6,8 +6,8 @@ fastg_paths_fishing.pl - Retrieve connected contigs with assembly graph connecti
 
 =head1 SYNOPSIS
 
-perl fastg_paths_fishing.pl -g <assemblygraph.fastg> -p <scaffolds.paths>
- -o <output prefix> -b <bait list> -i <num iterations> -r <flag for R>
+perl fastg_paths_fishing.pl -g assemblygraph.fastg -p scaffolds.paths
+ -s scaffolds.fasta -o output_prefix -b bait_list -i num_iterations [-r]
  
 perl fastg_paths_fishing.pl --help
 
@@ -27,36 +27,36 @@ https://github.com/kbseah/genome-bin-tools/
 
 =over 8
 
-=item --fastg|-g <file>
+=item --fastg|-g I<FILE>
 
 Assembly graph in Fastg format produced by SPAdes 3.6.2+. The Fastg files
 produced by previous SPAdes versions are not compatible. Fastg files
 produced by other assemblers have not been tested.
 
-=item --paths|-p <file>
+=item --paths|-p I<FILE>
 
 Paths file (e.g. scaffold.paths or contig.paths) produced by assembler,
 that matches scaffold/contig names to edge IDs in the assembly graph, as
 a single scaffold/contig may comprise more than one edge.
 
-=item --scaffolds|-s <file>
+=item --scaffolds|-s I<FILE>
 
 Fasta file containing scaffolds (e.g. scaffolds.paths or contigs.paths)
 produced by assembler. Necessary because the header names in the paths file
 do not always match the scaffold names exactly.
 
-=item --output|-o <string>
+=item --output|-o I<STRING>
 
 Prefix for output file names
 
-=item --iter|-i <integer>
+=item --iter|-i I<INTEGER>
 
 Number of iterations. With each iteration, the contigs/scaffolds connected
 to the current set of contigs are recruited to the current set. Fewer
 iterations will retrieve only closer-connected contigs. If --iter is set to 0,
 then iterate until no additional contigs can be recruited. Default: 0
 
-=item --bait|-b <file>
+=item --bait|-b I<FILE>
 
 File with list of scaffold/contig names to use as "bait" for connectivity
 fishing, one name per line, must match names in paths file.
@@ -85,7 +85,7 @@ List of retrieved contigs.
 =head1 COPYRIGHT AND LICENSE
 
 gbtools - Interactive tools for metagenome visualization and binning in R
-Copyright (C) 2015,2016  Brandon Seah (kbseah@mpi-bremen.de)
+Copyright (C) 2015-2018  Brandon Seah (kbseah@mpi-bremen.de)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -102,10 +102,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 =cut
-
-# SPAdes-style Fastg and Scaffold.paths parsing tool
-# Brandon Seah (kbseah@mpi-bremen.de)
-# 2016-02-25
 
 use warnings;
 use strict;
@@ -152,7 +148,7 @@ GetOptions (
     "help|h" => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
     "man|m"=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
 )
-or usage();
+or pod2usage(-verbose=>0);
 
 ## MAIN ###########################################
 
@@ -199,26 +195,6 @@ print $outlog_fh "List of fished scaffolds: ".abs_path($out_path.$out_file).".sc
 close($outlog_fh); # Close log file
 
 ## SUBROUTINES #####################################
-
-sub usage {
-    print STDERR "Fastg connectivity-based fishing\n\n";
-    print STDERR "Version: $version\n\n";
-    print STDERR "Finds contigs connected to a set of 'bait' contigs,\n";
-    print STDERR "using Fastg-formatted assembly graph, and a corresponding\n";
-    print STDERR "'paths' file linking scaffolds to graph edges.\n";
-    print STDERR "These files are produced by SPAdes 3.6.2 onwards \n\n";
-    print STDERR "Usage: perl $0 \\ \n";
-    print STDERR "\t -g assembly_graph.fastg \\ \n";
-    print STDERR "\t -p scaffolds.paths \\ \n";
-    print STDERR "\t -o output_prefix \\ \n";
-    print STDERR "\t -b list_of_bait_scaffolds \\ \n";
-    print STDERR "\t -i [number of fishing iterations] \n";
-    print STDERR "\t -r [Flag if called from within R] \n";
-    print STDERR "\n";
-    print STDERR "-i 0 means fishing iterates until no more contigs retrieved\n\n";
-    print STDERR "Output: Logfile (prefix.log) and list of fished scaffolds (prefix.scafflist)\n\n";
-    exit;
-}
 
 sub translate_fished_edges_to_nodes {
     # Convert list of fished edges to list of nodes

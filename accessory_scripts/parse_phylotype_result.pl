@@ -6,7 +6,7 @@ parse_phylotype_result.pl - Parse results from Amphora2 or Phyla-Amphora pipelin
 
 =head1 SYNOPSIS
 
-perl parse_phylotype_result.pl -p <amphora2_phylotype> > phylotype.parsed
+perl parse_phylotype_result.pl -p amphora2_phylotype > phylotype.parsed
 
 perl parse_phylotype_result.pl --help
 
@@ -24,7 +24,7 @@ https://github.com/kbseah/genome-bin-tools/
 
 =over 8
 
-=item --phylotypes|-p <file>
+=item --phylotypes|-p I<FILE>
 
 Result of Phylotyping.pl script from Amphora2 or Phyla-Amphora pipelines.
 
@@ -37,7 +37,7 @@ Output is written to STDOUT.
 =head1 COPYRIGHT AND LICENSE
 
 gbtools - Interactive tools for metagenome visualization and binning in R
-Copyright (C) 2015,2016  Brandon Seah (kbseah@mpi-bremen.de)
+Copyright (C) 2015-2018  Brandon Seah (kbseah@mpi-bremen.de)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -54,16 +54,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 =cut
-
-
-## Script to parse AMPHORA2 or Phyla-AMPHORA marker phylotyping info to a format that can be imported to R
-## after the style of Albertsen et al.
-
-## 2016-03-09 - Documentation to POD
-## 2015-06-13 - Tidied up formatting and comment lines
-## Version 2 - 2014-10-27 - Full taxon string parsed for export; no longer extracting only a single taxon level
-## Version 1 - 2014-10-22
-## Contact: kbseah@mpi-bremen.de
 
 use strict;
 use warnings;
@@ -85,36 +75,15 @@ if (@ARGV == 0) {
 GetOptions (
     "phylotypes|p=s" => \$phylotyping_result,
     "level|l=i" => \$taxon_level,
-    'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
+    'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 1); },
     'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
-);
+) or pod2usage(-verbose=>0);
 
-#if ($taxon_level > 7) {    # Catch smart-asses
-#   die "Taxon level cannot be lower than species!\n";
-#}
-#parse_phylotyping_result();
-parse_phylotyping_result_new();
+parse_phylotyping_result();
 
 ## SUBROUTINES ################################################################
 
-sub usage {
-    print STDERR "\n";
-    print STDERR "Parse results from Phyla-Amphora or Amphora2 Phylotyping.pl\n";
-    print STDERR "script for import to R\n";
-    print STDERR "\n";
-    print STDERR "Usage: \n";
-    print STDERR " \$ perl parse_phylotype_result.pl -p <results_file>\n";
-    print STDERR "\n";
-    print STDERR "Options:\n";
-    print STDERR " \t -p FILE   Results from the script Phylotyping.pl\n";
-    print STDERR "\n";
-    print STDERR "Output:\n";
-    print STDERR " \t <results_file>.parsed     Suitable for import to gbtools\n";
-    print STDERR "\n";
-    exit;
-}
-
-sub parse_phylotyping_result_new {
+sub parse_phylotyping_result {
     open(PHYLOTYPING, "< $phylotyping_result")
         or die ("Cannot open file $phylotyping_result: $!\n");
     my $discardfirstline = <PHYLOTYPING>;   # Throw away header line
@@ -164,51 +133,3 @@ sub parse_phylotyping_result_new {
     }    
     close (PHYLOTYPING);
 }
-
-sub parse_phylotyping_result {
-    my $cut_level = $taxon_level + 1;
-    open(PHYLOTYPING, "< $phylotyping_result")
-        or die ("Cannot open phylotyping results file: $! \n");
-    my $discardheader = <PHYLOTYPING>;
-    while (<PHYLOTYPING>) {
-        my @currentline = split "\t", $_;
-        my $currentmarker = $currentline[0];                            # Get current marker ID
-        $marker_name_hash{$currentmarker} = $currentline[1];            # Save name of marker gene
-        my @temparray = split "_", $currentmarker;                      # Splitting and popping to get scaffold name from marker ID, by removing ID number tacked on by getorf
-        my $discard = pop @temparray;
-        $marker_scaffold_hash{$currentmarker} = join "_", @temparray;   # Save scaffold containing marker
-        if ( scalar(@currentline) >= $cut_level+2 ) {                   # If this marker has been assigned at least to level of $taxon_level, extract the taxon name at this level
-            my @temparray2 = split /\(/, $currentline[$cut_level];
-            $marker_taxon_hash{$currentmarker} = $temparray2[0];        # Save taxon assignment of marker
-        }
-        elsif ( scalar(@currentline) < $cut_level+2 ) {                  # Otherwise use the next-highest taxonomic level as the taxon name
-            my $pos = scalar(@currentline);
-            my @temparray3 = split /\(/, $currentline[$pos-1];
-            $marker_taxon_hash{$currentmarker} = $temparray3[0];        # Save lowest-level taxon-assignment of marker
-        }
-        
-    }
-    close(PHYLOTYPING);
-    open(PHYLOTYPINGOUT, "> $phylotyping_result\.parsed")
-        or die ("Cannot open $phylotyping_result\.parsed for writing: $!\n"); # Write file containing parsed marker details
-    print PHYLOTYPINGOUT "markerid",  # Header line
-                         "\t",
-                         "scaffold",
-                         "\t",
-                         "gene",
-                         "\t",
-                         "taxon",
-                         "\n";
-    foreach my $currentmarker (keys %marker_name_hash) {
-        print PHYLOTYPINGOUT $currentmarker,
-                             "\t",
-                             $marker_scaffold_hash{$currentmarker},
-                             "\t",
-                             $marker_name_hash{$currentmarker},
-                             "\t",
-                             $marker_taxon_hash{$currentmarker},
-                             "\n";
-    }
-    close (PHYLOTYPINGOUT);
-}
-

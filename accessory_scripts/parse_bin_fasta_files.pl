@@ -6,7 +6,7 @@ parse_bin_fasta_files.pl - Parse list of Fasta files and bin names for gbtools
 
 =head1 SYNOPSIS
 
-perl parse_bin_fasta_files.pl -i <input> -o <output>
+perl parse_bin_fasta_files.pl -i fasta_file_list -o output.tsv
 
 perl parse_bin_fasta_files.pl --help
 
@@ -24,12 +24,12 @@ https://github.com/kbseah/genome-bin-tools/
 
 =over 8
 
-=item --input|-i <file>
+=item --input|-i I<FILE>
 
 Tab-separated file. Column 1 is path to Fasta files that correspond to genome
 bins, and column 2 is shortname for the genome bin.
 
-=item --output|-o <file>
+=item --output|-o I<FILE>
 
 Name for output file. 
 
@@ -43,7 +43,7 @@ genome bin.
 =head1 COPYRIGHT AND LICENSE
 
 gbtools - Interactive tools for metagenome visualization and binning in R
-Copyright (C) 2015,2016  Brandon Seah (kbseah@mpi-bremen.de)
+Copyright (C) 2015-2018  Brandon Seah (kbseah@mpi-bremen.de)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -78,9 +78,9 @@ if (@ARGV == 0 ) {
 GetOptions (
     "input|i=s" =>\$input_table,
     "output|o=s" =>\$output_file,
-    'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
+    'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 1); },
     'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
-);
+) or pod2usage(-verbose=>0);
 
 ## MAIN #######################################################################
 
@@ -93,20 +93,6 @@ else {
 }
 
 ## SUBROUTINES ################################################################
-
-sub usage {
-    print STDERR "\nParse list of Fasta files and bin names \n";
-    print STDERR "\nGiven a set of Fasta files, each representing a separate \n";
-    print STDERR "genome bin, parse this into a table listing each contig in \n";
-    print STDERR "the metagenome, and the corresponding bin it belongs to. \n";
-    print STDERR "This table can then be imported by gbtools to automatically\n";
-    print STDERR "create gbtbin objects\n\n";
-    print STDERR "Usage:\n";
-    print STDERR "\t \$ perl parse_bin_fasta_files.pl -i input_table\n\n";
-    print STDERR "Where input_table is a tab-separated text file with Fasta file\n";
-    print STDERR "paths in the first column, and the bin name in second column.\n\n";
-    exit;
-}
 
 sub read_table {
     open(INPUT, "<", $input_table) or die ("$!\n");
