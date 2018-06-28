@@ -7,20 +7,24 @@
 #' fuller instructions on generating the input files required.
 #'
 #' @param covstats File(s) with coverage statistics of a metagenomic assembly;
-#'                  output of pileup.sh in BBTools package (required). More
-#'                  than one file can be specified with c().
+#'        output of pileup.sh in BBTools package (required). More than one file
+#'        can be specified with c().
 #' @param mark Table of scaffolds with marker genes and taxonomic information
-#'              for each marker. E.g. AMPHORA2 or Phyla-AMPHORA marker sets
-#'              and output parsed by parse_phylotype_result.pl. (optional)
+#'        for each marker. E.g. AMPHORA2 or Phyla-AMPHORA marker sets and output
+#'        parsed by parse_phylotype_result.pl. If more than one marker set is
+#'        available, this can be a vector (optional)
+#' @param marksource Name for the marker set given to parameter \code{mark}. If
+#'        more than one marker file is supplied, this can be a vector.
 #' @param ssu Table of scaffolds with SSU rRNA genes, and taxonomic info
-#'             for each SSU. E.g. use get_ssu_for_genome_bin_tools.pl.
-#'             (optional)
+#'        for each SSU. E.g. use get_ssu_for_genome_bin_tools.pl. (optional)
 #' @param tnra Table of tRNA genes found in assembly. Can use the output from
-#'              tRNAscan-SE directly. (optional)
+#'        tRNAscan-SE directly. (optional)
 #'
 #' @return Object of class gbt
 #'
-#' @seealso \code{\link{gbtbin}}, \code{\link{choosebin}}
+#' @seealso \code{\link{gbtbin}} - Define bin from gbt object
+#' @seealso \code{\link{choosebin}} - Choose bin interactively from plot
+#' @seealso \code{\link{gbt_checkinput}} - Check input files before import
 #'
 #' @export
 gbt <- function(covstats,mark,marksource,ssu,trna) UseMethod ("gbt")

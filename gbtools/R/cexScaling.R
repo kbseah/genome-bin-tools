@@ -2,7 +2,6 @@
 
 #' @seealso \code{\link{plot.gbt}}
 
-
 cexScaling <- function (x, # Numeric vector (contig lengths)
                         type, # Scaling type (options: "length","area")
                         const # Linear scaling constant (numeric)

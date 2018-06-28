@@ -1,8 +1,7 @@
 #' Take union of two gbtbin objects
 #'
-#' Take union of two gbtbin objects. Equivalent to the R union function
-#'
-#' Self explanatory...
+#' Combine two gbtbin objects into a single bin. Equivalent to the R union
+#' function
 #' 
 #' @param x1 Object of class gbtbin
 #' @param x2 Object of class gbtbin

@@ -5,9 +5,11 @@
 #' as a label overlay on the plot.
 #'
 #' @return Object of class gbtbin containing identified contigs
-#' @export
+#' 
 #' @seealso \code{\link{plot.gbt}}
 #' @seealso \code{\link{choosebin}}
+#'
+#' @export
 
 identify.gbt <- function(d,
 #' @param d Object of class gbt or gbtbin, in plot

@@ -22,7 +22,8 @@
 #' 
 #' @param x Object of class gbt
 #' @param bins List of gbtbin objects
-#' @param binNames Vector of names for the bins (only used to draw legend, default none)
+#' @param binNames Vector of names for the bins (only used to draw legend,
+#'        default none)
 #' @param slice For plotting coverage data, which sample to use? 
 #' @param cols Custom palette for bins overlay (default Rainbow)
 #' @param legend Draw legend? (logical, default FALSE)

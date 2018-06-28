@@ -2,5 +2,6 @@
 # Ignore text editor backup files
 *~ 
 # Ignore R package building folder
-R_package/*
-version01/*
+.gitignore
+accessory_scripts/debug_fastg_fishing
+accessory_scripts/get_nodes.pl

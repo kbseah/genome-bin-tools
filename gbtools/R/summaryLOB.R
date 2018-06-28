@@ -23,8 +23,8 @@
 #' @export
 
 summaryLOB <- function (x, # List of gbtbin objects
-                         marksource="amphora2" # Marker source to summarize
-                         ) {
+                        marksource="amphora2" # Marker source to summarize
+                        ) {
     if (length(x[[1]]$summary[[7]]) > 1) { # If there is more than one marksource
         theout <- sapply(x, function (y) {s <- which(y$summary[[7]] == marksource)
                                           c(y$summary[1:6],

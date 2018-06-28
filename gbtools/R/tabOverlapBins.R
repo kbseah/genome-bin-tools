@@ -3,12 +3,15 @@
 #' Given two lists of gbtbin objects, compare them in terms of their shared
 #' contigs and output a table.
 #'
-#' @param x List of gbtbin objects (either list(bin1,bin2) or mget(vector_of_bin_names)
+#' @param x List of gbtbin objects (either list(bin1,bin2) or
+#'        mget(vector_of_bin_names)
 #' @param y Second list of gbtbin objects
 #' @param binNames.x Vector of names for each bin in list x
 #' @param binNames.y Vector of names for each bin in list y
-#' @param weight Compare by number of bases shared (default TRUE), else by number of contigs
-#' @param by Which list of bins to compute fraction of overlap: "x" (default), "y", or "raw" (raw counts)
+#' @param weight Compare by number of bases shared (default TRUE), else by
+#'        number of contigs
+#' @param by Which list of bins to compute fraction of overlap: "x" (default),
+#'        "y", or "raw" (raw counts)
 #'
 #' @return Matrix reporting quantity of overlap between two sets of bins
 #' @seealso \code{\link{mergeOverlapBins}}

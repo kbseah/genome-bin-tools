@@ -26,33 +26,32 @@
 #' is the first set of coverage data).
 #'
 #' @param x Object of class gbt or gbtbin
-#' @param slice For plotting coverage data, which sample to use? (see
-#'               Details section below)
+#' @param slice For plotting coverage data, which sample to use? (see Details
+#'        section below)
 #' @param cutoff Minimum length to plot contigs (numeric, default 1000)
 #' @param taxonLevel Taxonomic level for coloring the taxonomic markers, e.g.
-#'               "Class" or "Phylum". (default "Class")
+#'        "Class" or "Phylum". (default "Class")
 #' @param assemblyName Name of the metagenome, for plot title
 #' @param marker Color plot by taxon markers? (logical, default TRUE)
 #' @param marksource Specify which marker set to plot (default: first supplied)
-#' @param markCutoff Length x coverage weight cutoff for colored markers (default: 0.99)
+#' @param markCutoff Length x coverage weight cutoff for colored markers
+#'        (default: 0.99)
 #' @param markCustomPalette (Optional) Assign colors to use for markers
-#'                           belonging to specific taxa. This must be a data
-#'                           frame with taxon names in column 1, and color names
-#'                           (English or hex codes) in column 2. Taxa that are
-#'                           not represented in the gbt object will be ignored.
-#'                           Taxa not in this table will be colored grey. If
-#'                           custom colors are specified, then the markCutoff
-#'                           parameter will be ignored. (default: 0)
-#' @param highlightTaxon Color markers affiliated to specified taxon only (default: "")
+#'        belonging to specific taxa. This must be a data frame with taxon names
+#'        in column 1, and color names (English or hex codes) in column 2. Taxa
+#'        that are not represented in the gbt object will be ignored. Taxa not
+#'        in this table will be colored grey. If custom colors are specified,
+#'        then the markCutoff parameter will be ignored. (default: 0)
+#' @param highlightTaxon Color markers affiliated to specified taxon only
+#'        (default: "")
 #' @param gc Color plot by GC% instead of taxon markers? Only used for
-#'            differential coverage plots, i.e. when two values are supplied
-#'            to the slice parameter. (logical, default FALSE)
+#'        differential coverage plots, i.e. when two values are supplied to the
+#'        slice parameter. (logical, default FALSE)
 #' @param userAxis Use user-custom values for axis. See Details
 #' @param ssu Draw markers for SSU genes? (logical, default FALSE)
 #' @param trna Draw markers for tRNA genes? (logical, default FALSE)
 #' @param consensus For contigs with more than one marker gene with conflict
-#'                   in taxonomy, take majority rule consensus? (logical,
-#'                   default TRUE)
+#'        in taxonomy, take majority rule consensus? (logical, default TRUE)
 #' @param legend Draw legend? (logical, default FALSE)
 #' @param textlabel Label SSU markers with taxon? (logical, default FALSE)
 #' @param col Color for points (default "grey")
@@ -60,7 +59,8 @@
 #' @param main Custom label for plot title
 #' @param xlab Custom label for x-axis label
 #' @param ylab Custom label for y-axis label
-#' @param symbolScale Scaling function to use for plot characters (options: "area", "length")
+#' @param symbolScale Scaling function to use for plot characters (options:
+#'        "area", "length")
 #' @param symbolScaleParam Scaling constant for plot chars (default: 100)
 #' @param ... See par for more plot options
 #'

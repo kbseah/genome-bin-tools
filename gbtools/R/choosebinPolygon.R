@@ -11,5 +11,5 @@
 #' @return Object of class gbtbin
 #' @seealso \code{\link{plot.gbt}}
 #' @export
-#'
+
 choosebinPolygon <- function(x, ... ) UseMethod ("choosebinPolygon")  # Defines generic for choosebinPolygon function

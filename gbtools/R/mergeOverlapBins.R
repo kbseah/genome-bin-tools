@@ -5,16 +5,18 @@
 #'
 #' @inheritParams tabOverlapBins
 #' @param by Condition by fraction in y (default) or x
-#' @param mergeto Merge bins in list x to list y ("x" - default) or vice-versa ("y")
-#' @param threshold Threshold for fraction that must be shared before bins are merged (default 0.8)
+#' @param mergeto Merge bins in list x to list y ("x" - default) or vice-versa
+#'        ("y")
+#' @param threshold Threshold for fraction that must be shared before bins are
+#'        merged (default 0.8)
 #' @param out Name prefix of output bins (default "mergedBin")
 #'
 #' @return List of gbtbin objects containing the merged bins (if any)
 #' @seealso \code{\link{tabOverlapBins}}
 #' @seealso \code{\link{importBins}}
 #' @seealso \code{\link{multiBinPlot}}
-#' @export
 #'
+#' @export
 
 mergeOverlapBins <- function(x, # List of gbtbin objects
                              y, # Second list of gbtbin objects

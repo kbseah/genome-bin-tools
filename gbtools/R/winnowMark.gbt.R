@@ -1,19 +1,10 @@
-#' Subset a gbt or gbtbin object by marker gene taxonomy
-#'
-#' @param marksource Which marker set to use (default -- use the first one)
-#' @param param Taxonomic level to make subset (default "Class")
-#' @param value Value of the taxon to make subset (default
-#'               "Gammaproteobacteria")
-#' @inheritParams winnow
-#' @return Object of class gbtbin
-#' @seealso \code{\link{winnow}}, \code{\link{gbt}}
 #' @export
-#'
+
 winnowMark.gbt <- function(x,  # Object of class gbt
-                           marksource=NA, # Which marker set to use
-                           param="Class",  # Which taxonomic level to choose?
-                           value="Gammaproteobacteria",  # Which taxon to choose?
-                           save=FALSE,  # Save list of contigs to external file?
+                           marksource, # Which marker set to use
+                           param,  # Which taxonomic level to choose?
+                           value,  # Which taxon to choose?
+                           save,  # Save list of contigs to external file?
                            file="bin_scaffolds.list"  # File to save list of contigs
                            ) {
 ## Winnow a gbt object by its marker table values
