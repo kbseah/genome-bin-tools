@@ -42,7 +42,7 @@ generatePlotColors2 <- function(scaffold.stats,  # scaff table from gbt object
         # Check that all taxon names in markCustomPalette are in taxon.vector
         taxonIgnore <- markCustomPalette$taxon[which(!markCustomPalette$taxon %in% taxon.vector)]
         if (length(taxonIgnore) > 0) {
-            cat("gbtools WARNING: Some taxa in custom palette not found in gbt object\n")
+            warning("Some taxa in custom palette not found in gbt object")
         }
         # Which taxa are not in the custom palette should be in grey
         taxon.grey <- taxon.vector[which(!taxon.vector %in% markCustomPalette[,1])]
@@ -60,7 +60,7 @@ generatePlotColors2 <- function(scaffold.stats,  # scaff table from gbt object
     } else {
         # Otherwise, by default assign rainbow colors to taxa in order of weights
         if (weightCutoff > 1 || weightCutoff < 0) { # Catch errors for weightCutoff
-            cat ("gbtools ERROR: weightCutoff parameter must be between 0 and 1\n")
+            stop("weightCutoff parameter must be between 0 and 1")
         }
         else {
             # Count taxa which have the highest weight, until weightCutoff

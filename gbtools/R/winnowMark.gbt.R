@@ -9,7 +9,7 @@ winnowMark.gbt <- function(x,  # Object of class gbt
                            ) {
 ## Winnow a gbt object by its marker table values
     if (is.na(marksource)) {
-        cat("gbtools WARNING: No marksource supplied, using the first marker set by default...\n")
+        warning("No marksource supplied, using the first marker set by default...")
         marksource=levels(x$markTab$source)[1]
     }
     markTab.subset <- subset(x$markTab,source==marksource)

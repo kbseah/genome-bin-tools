@@ -10,7 +10,7 @@ choosebinPolygon.gbt <- function(x,  # Object of class gbt
     require(sp)
 ## Wrapper for picking bin interactively from GC-cov or diff-cov plot
     if (!is.numeric(slice) || length(slice) > 2) {
-        cat ("gbtools ERROR: Please specify the library(-ies) used to make the plot in focus\n")
+        stop("Please specify the library(-ies) used to make the plot in focus")
     } else {
         if (length(slice)==1) {  # Pick bin from GC-coverage plot
             X <- merge(data.frame(ID=x$scaff$ID,

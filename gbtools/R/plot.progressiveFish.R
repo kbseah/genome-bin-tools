@@ -6,7 +6,7 @@ plot.progressiveFish <- function(x,
                                  legend=TRUE,
                                  log="default") {
     if(class(parent) != "gbt") {
-        cat("gbtools ERROR: parent must be of class gbt")
+        stop("parent must be of class gbt")
     } else {
         if (plotType == "gccov") {
             palette <- heat.colors(length(x$binList))

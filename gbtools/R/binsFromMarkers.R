@@ -24,7 +24,7 @@ binsFromMarkers <- function(x, # Object of class gbt
                             to.list=TRUE # Output bins to list of gbtbin objects? (default TRUE)
                            ) {
     if (class(x) != "gbt") {
-        cat ("gbtools ERROR: Object x must be of class gbtbin \n")
+        stop("Object x must be of class gbtbin")
     } else {
         theout <- NULL # Initialize list for output
         thesubset <- subset(x$markTab,source==as.character(marksource))

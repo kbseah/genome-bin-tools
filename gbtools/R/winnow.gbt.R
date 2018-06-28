@@ -29,8 +29,7 @@ winnow.gbt <- function (x,
             }
             scafflist <- intersect(scafflist, covslist)  # Update scaffolds shortlist
         } else {
-            cat("gbtools ERROR: Lengths of covmin, covmax, and slice parameters
-                do not match\n")
+            stop("Lengths of covmin, covmax, and slice parameters do not match")
         }
     }
     ## Package and return result ###################################################

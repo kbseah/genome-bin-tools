@@ -8,7 +8,7 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
                          ) {
 ## Create new gbt objects
     if ( class(covstats)!="character" || length(covstats)==0 ) {  # Check that covstats argument is character class
-        cat ("gbtools ERROR: covstats argument must be a list of file names!\n")
+        stop("covstats argument must be a list of file names!")
     }
     else {
         ## Read Coverage tables ##############################################
@@ -52,9 +52,10 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
                     if (length(which(!markTabTemp$scaffold %in% scaff$ID)) > 0) {
                         # Catch marker tables where scaffold IDs dont match
                         # what's in the scaff table
-                        cat ("gbtools WARNING: Scaffold IDs in marker table ")
-                        print (as.character(mark[i]))
-                        cat (" doesn't match contig coverage tables \n")
+                        warning(paste(c("Scaffold IDs in marker table",
+                                        as.character(mark[i]),
+                                        "doesn't match contig coverage tables")
+                                      ,collapse=" "))
                     }
                     numMarksTemp <- dim(markTabTemp)[1]
                     sourcevector <- rep(as.character(marksource[i]),numMarksTemp)
@@ -67,13 +68,13 @@ gbt.default <- function (covstats,  # Vector of filenames for coverage tables
                     }
                 }
             } else {
-                cat ("gbtools WARNING: Marker tables not supplied. marksource parameter ignored \n")
+                warning("Marker tables not supplied. marksource parameter ignored")
                 marksource <- NA
                 numMarks <- NA
                 markTab <- NA
             }
         } else {
-            cat ("gbtools WARNING: marksource not supplied. Any marker tables supplied ignored \n")
+            warning("marksource not supplied. Any marker tables supplied ignored")
             marksource <- NA
             numMarks <- NA
             markTab <- NA

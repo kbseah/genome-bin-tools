@@ -30,7 +30,7 @@ mergeOverlapBins <- function(x, # List of gbtbin objects
                              ) {
     # Check that inputs are lists of gbtbin objects
     if (!is.list(x) || !is.list(y)) {
-        cat ("gbtools ERROR: Input should be lists of gbtbin objects \n")
+        stop("Input should be lists of gbtbin objects")
     } else {
         if (binNames.x=="" || binNames.y=="") {
             binNames.x <- 1:length(x)

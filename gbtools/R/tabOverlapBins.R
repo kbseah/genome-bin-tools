@@ -20,7 +20,6 @@
 #' @export
 #'
 
-
 tabOverlapBins <- function(x, # First list of gbtbin objects
                            y, # Second list of gbtbin objects
                            binNames.x="", # list of names for x. Default -- number sequentially
@@ -30,7 +29,7 @@ tabOverlapBins <- function(x, # First list of gbtbin objects
                            ) {
     # Check that inputs are lists of gbtbin objects
     if (!is.list(x) | !is.list(y)) {
-        cat ("gbtools ERROR: The input variables x and y must be character vectors giving names of gbtbin objects \n")
+        stop("The input variables x and y must be character vectors giving names of gbtbin objects")
     }
     else {
         if (binNames.x=="" || binNames.y=="") {
@@ -64,7 +63,7 @@ tabOverlapBins <- function(x, # First list of gbtbin objects
             } else if (by=="raw") {
                 return (counts.matrix)
             } else {
-                cat ("gbtools ERROR: Invalid value for \"by\" -- should be \"x\", \"y\", or \"raw\" \n" )
+                stop("Invalid value for \"by\" -- should be \"x\", \"y\", or \"raw\" ")
             }
         } else {
             lens <- NULL # Initialize the vector of bases x in y
@@ -89,7 +88,7 @@ tabOverlapBins <- function(x, # First list of gbtbin objects
             } else if (by=="raw") {
                 return(lens.matrix)
             } else {
-                cat ("gbtools ERROR: Invalid value for \"by\" -- should be \"x\", \"y\", or \"raw\" \n" )
+                stop("Invalid value for \"by\" -- should be \"x\", \"y\", or \"raw\" ")
             }
         }
     }

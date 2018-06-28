@@ -24,7 +24,7 @@ points.gbtbin <- function(x,  # Object of class gbtbin
     }
     ## Catch invalid slice values ##################################################
     if (is.na(slice) || !is.numeric(slice) || length(slice) > 2) { 
-        cat ("gbtools ERROR: Please specify valid value for slice option for this bin\n")
+        stop("Please specify valid value for slice option for this bin")
     }
     ## Add points to GC-coverage plot ##############################################
     else if (is.numeric(slice) && length(slice)==1) {
@@ -64,5 +64,5 @@ points.gbtbin <- function(x,  # Object of class gbtbin
                col=col, ...)
     }
     ## Throw error message for invalid slice options ################################
-    else { cat ("gbtools ERROR: Please specify valid value for slice option for this bin\n")}
+    else { stop("Please specify valid value for slice option for this bin")}
 }

@@ -107,14 +107,14 @@ plot.gbt <- function(x,  # Object of class gbt
     }
     ## Catch missing "slice" parameter
     if (is.na(slice[1]) || !is.numeric(slice)) {
-        cat("gbtools ERROR: Please supply valid value for slice option\n")
+        stop("Please supply valid value for slice option")
     }
     ## Generate data.frame subset for user-custom axis values #################
     else if (!is.na(userAxis[1])) {
         if (length(userAxis)>0 ){
             ## Catch exceptions ###################################################
             if (length (userAxis)>2 ) {
-                cat ("gbtools ERROR: Cannot supply more than 2 userAxis values\n")
+                stop("Cannot supply more than 2 userAxis values")
             }
             else {
                 ## Define X-axis ##################################################
@@ -142,7 +142,7 @@ plot.gbt <- function(x,  # Object of class gbt
                                                 xVals=x$userTab[[sourcenum]][2]),
                                      by="ID")
                 } else {
-                    cat ("gbtools ERROR: Invalid value for userAxis\n")
+                    stop("Invalid value for userAxis")
                 }
                 ## Define Y-axis ##################################################
                 if (userAxis[2]=="gc") {
@@ -156,7 +156,7 @@ plot.gbt <- function(x,  # Object of class gbt
                     userX.y <- data.frame(ID=x$userTab[[sourcenum]]$scaffold,
                                           yVals=x$userTab[[sourcenum]][2])
                 } else {
-                    cat ("gbtools ERROR: Invalid value for userAxis\n")
+                    stop("Invalid value for userAxis")
                 }
                 ## Make plot data.frame ###########################################
                 X <- merge(userX.x,
@@ -289,17 +289,15 @@ plot.gbt <- function(x,  # Object of class gbt
                        && length(marksource)==1) {
                 ## Catch cases where marksource doesn't match entries in x$marksource
                 if (!any(x$markSource==marksource)) {
-                    cat ("gbtools WARNING: marksource doesn't match any entries,
-                         defaulting to the first...\n")
+                    warning("marksource doesn't match any entries, defaulting to the first...")
                     marksource <- x$markSource[1]
                 }
             } else if (is.character(marksource)
                        && length(marksource) > 1) {
-                cat ("gbtools WARNING: Only one marker source can be plotted
-                     as overlay (marksource parameter). Defaulting to first supplied\n")
+                warning("Only one marker source can be plotted as overlay (marksource parameter). Defaulting to first supplied")
                 marksource <- marksource[1]
             } else {
-                cat ("gbtools ERROR: Please check marksource argument\n")
+                stop("Please check marksource argument")
             }
             ## Overlay markers ###############################################
             markTabTemp <- subset(x$markTab,source==marksource)
@@ -308,7 +306,7 @@ plot.gbt <- function(x,  # Object of class gbt
                 # Subset mark.stats to keep only the specified taxon
                 mark.stats <- mark.stats[which(mark.stats$taxon==highlightTaxon),]
                 if (dim(mark.stats)[1] == 0) { # If mark.stats contains no rows, warning
-                    cat ("gbtools WARNING: Taxon specified by highlightTaxon matches none!\n")
+                    warning("Taxon specified by highlightTaxon matches none!")
                 }
             }
             points(x=mark.stats$xVals,

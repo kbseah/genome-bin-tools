@@ -18,7 +18,7 @@ exportBins <- function (x, # List of gbtbin objects
                         prefix="gbtExport" # Filename prefix for exported contig lists -- used if useBinNames is FALSE 
                         ) {
     if (!is.list(x)) {
-        cat ("gbtools ERROR: Object x must be a list of gbtbin objects\n")
+        stop("Object x must be a list of gbtbin objects")
     } else {
         if (is.null(names(x))) {
             outnames <- paste(rep(prefix,length(x)),1:length(x),sep="_")
@@ -30,7 +30,7 @@ exportBins <- function (x, # List of gbtbin objects
             }
         }
         for (i in 1:length(x)) {
-            if (class(x[[i]]) != "gbtbin") { cat ("gbtools ERROR: Object x mustb e a list of gbtbin objects\n")}
+            if (class(x[[i]]) != "gbtbin") { stop("Object x mustb e a list of gbtbin objects")}
             else {
                 write(as.character(x[[i]]$scaff$ID),file=paste(as.character(outnames[i]),"list",sep="."))
             }

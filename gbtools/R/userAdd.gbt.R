@@ -7,11 +7,11 @@ userAdd.gbt <- function(x,
     if (!is.data.frame(userTab) ||
         length(which(names(userTab)=="scaffold"))==0 ||
         is.na(userSource) ) {
-        cat("gbtools ERROR: Please check inputs. See help(userAdd) \n")
+        stop("Please check inputs. See help(userAdd)")
     } else {
         ## Check that userTab scaffold IDs match x scaffold IDs ###############
         if (length(which(userTab$scaffold %in% x$scaff$ID))==0) {
-            cat ("gbtools ERROR: Scaffold IDs in userTab don't match gbt object\n")
+            stop("Scaffold IDs in userTab don't match gbt object")
         } else {
             x$userTab[[length(x$userTab)+1]] <- userTab  # Append userTab
             x$userSource[length(x$userTab)] <- userSource # Append userSource

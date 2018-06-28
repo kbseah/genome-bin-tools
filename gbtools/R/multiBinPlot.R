@@ -59,25 +59,23 @@ multiBinPlot <- function (x, # Object of class gbt
     # NB: Plot annotations (marker genes, SSU, tRNA) turned off because will be overlapped by bins
     # Check if user-supplied palette matches no. of bins, else use default rainbow palette
     if (length(cols) != length(bins)) {
-        cat ("\nUsing default rainbow palette...\n")
+        message("Using default rainbow palette...")
         cols <- rainbow (length(bins))
     }
     # Check if bin names match number of bins, else ignore legend plotting
     if (legend==TRUE && binNames == "") {
-        cat ("\nNo names for bins supplied, using sequential numbers...\n")
+        message("No names for bins supplied, using sequential numbers...")
         # Sequentially name the bins "bin 1, bin 2, ..." if no custom names supplied
         binNames <- 1:length(bins)
         binNames <- sapply(binNames, function(x) paste("bin",x))
     }
     else if (legend==TRUE && length(binNames) != length(bins)) {
-        cat ("\nNumber of bin names doesn't match number of bins supplied, ignoring legend...\n")
+        warning("Number of bin names doesn't match number of bins supplied, ignoring legend...")
         legend <- FALSE
     }
     # Check that gbt object is really a gbt or gbtbin object, else abandon plotting
     if (class(x) != "gbt" && class(x) != "gbtbin") {
-        cat ("\nObject ")
-        print (deparse(substitute(x)))
-        cat (" is not a gbt or gbtbin object!\n")
+        stop(paste(c("Object",deparse(substitute(x)),"is not a gbt or gbtbin object!"),collapse=" "))
     }
     else {
         #### Base plot #########################################################

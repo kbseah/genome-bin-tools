@@ -20,7 +20,7 @@ identify.gbt <- function(d,
                          ) {
     # Catch invalid "slice" parameters
     if (is.na(slice) || !is.numeric(slice)) {
-        cat ("gbtools ERROR: Please specify valid value for slice parameter\n")
+        stop("Please specify valid value for slice parameter")
     } else {
         # Data frame for GC-coverage plots
         if (length (slice) == 1) {
