@@ -6,8 +6,9 @@ Read the [paper](http://journal.frontiersin.org/article/10.3389/fmicb.2015.01451
 
 ## News
 
- * You can now specify custom colors for taxonomic markers in plots with the `markCustomPalette=` parameter in the `plot` function (v. 2.5.8)
- * Bug in Fastg-fishing script caused by inconsistent SPAdes header names has been fixed (v. 2.5.7)
+ * Validate input files within R environment with `gbt_checkinput()` (v2.6.0), validator no longer depends on non-core Perl module
+ * You can now specify custom colors for taxonomic markers in plots with the `markCustomPalette=` parameter in the `plot` function (v2.5.8)
+ * Bug in Fastg-fishing script caused by inconsistent SPAdes header names has been fixed (v2.5.7)
 
 ## Quick start
 
@@ -24,7 +25,7 @@ The `tar.gz` archives can be found in the `R_source_package` folder.
 ```R
 install.packages("sp") # Dependency
 install.packages("plyr") # Dependency
-install.packages("gbtools_2.4.5.tar.gz",repos=NULL,type="source")
+install.packages("gbtools_2.6.0.tar.gz",repos=NULL,type="source")
 ```
 
 #### Directly from GitHub with `devtools`
@@ -38,8 +39,19 @@ install_github("kbseah/genome-bin-tools/gbtools") # Install latest version of th
 
 ### 2. Import data and see summary statistics
 
+First check that the input data are correctly formatted
+
 ```R
-d <- gbt (covstats=c("SampleA2.covstats","SampleG1.covstats"), # Coverage data
+gbt_checkinput (covstats=c("SampleG1.covstats","SampleA2.covstats"), # Coverage data
+                ssu="olavius_metagenome.ssu.tab", # SSU gene annotations
+                mark=c("amphora2_results.tab","blobology_results.tab")) # Marker genes
+# Should give a message that no errors are found
+```
+
+Now import the data into the R environment
+
+```R
+d <- gbt (covstats=c("SampleG1.covstats","SampleA2.covstats"), # Coverage data
           ssu="olavius_metagenome.ssu.tab", # SSU gene annotations
           mark=c("amphora2_results.tab","blobology_results.tab"), # Marker genes
           marksource=c("amphora2","blob")) # Names for the marker gene sets
@@ -97,7 +109,7 @@ Documentation for each function can be accessed in R by typing `?` followed by f
 
 Problems with using `gbtools`? Create a new issue using the GitHub issue-tracker on the right. Or send me an email, with "gbtools help" in the subject line.
 
-Problems with input file formats? Read [the appendix](Appendix.\ Input\ file\ formats) and use the `input_validator.pl` script to check your input files.
+Problems with input file formats? Read [the wiki](https://github.com/kbseah/genome-bin-tools/wiki/Appendix.-Input-file-formats) and use the `input_validator.pl` script to check your input files.
 
 ## Paper(s) using `gbtools`
 Petersen et al. 2016. [Nature Microbiology 2: 16195.](http://www.nature.com/articles/nmicrobiol2016195)
