@@ -9,3 +9,4 @@ Description: gbtools lets you visualize metagenome assemblies by GC-coverage or 
 Imports: sp, plyr
 License: GPL-2
 RoxygenNote: 6.0.1
+Suggests: testthat

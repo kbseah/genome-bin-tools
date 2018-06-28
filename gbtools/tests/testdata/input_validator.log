@@ -1,0 +1,8 @@
+[17:57:55] Validation of input files for gbtools
+[17:57:56] Covstats file SampleG1.covstats: No fatal errors detected
+[17:57:56] Input validation complete. Thank you for using gbtools
+[17:57:56] Writing log file to input_validator.log[17:58:04] Validation of input files for gbtools
+[17:58:05] Covstats file SampleG1.covstats: No fatal errors detected
+[17:58:05] Mark file blobology_results.tab: No fatal errors detected
+[17:58:05] Input validation complete. Thank you for using gbtools
+[17:58:05] Writing log file to input_validator.log

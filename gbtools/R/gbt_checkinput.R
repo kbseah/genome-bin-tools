@@ -47,7 +47,7 @@ gbt_checkinput <- function(covstats,
     # Optional parameters
     if (!is.null(mark)) {
         command.params <- paste(command.params,
-                                "--mark", paste(covstats,collapse=","))
+                                "--mark", paste(mark,collapse=","))
     }
     if (!is.null(ssu)) {
         command.params <- paste(command.params,

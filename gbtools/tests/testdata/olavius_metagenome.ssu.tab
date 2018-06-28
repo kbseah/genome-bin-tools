@@ -1,0 +1,4 @@
+scaffold	SSUid	SSUgenbankid	Superkingdom	Phylum	Class	Order	Family	Genus	Species	pid	alnlen	eval
+contig-100_1055	contig-100_1055:1134-2950(+)	AF411870.1.1810	Eukaryota	Opisthokonta	Holozoa	Metazoa	Animalia	Annelida	Tubificidae	99.8	1809	-1
+contig-100_1182	contig-100_1182:199-1249(+)	AF328856.1.1497	Bacteria	Proteobacteria	Gammaproteobacteria	Gammaproteobacteria Incertae Sedis	Unknown Family	Arenicella	Olavius algarvensis sulfur-oxidizing endosymbiont	99.9	1015	-1
+contig-100_2324	contig-100_2324:1-1275(-)	AJ620497.1.1523	Bacteria	Proteobacteria	Deltaproteobacteria	Desulfobacterales	Desulfobacteraceae	uncultured	Olavius algarvensis Delta 4 endosymbiont	99.9	1269	-1
