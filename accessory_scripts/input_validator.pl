@@ -7,12 +7,12 @@ input_validator.pl - Input format validator for gbtools package
 =head1 SYNOPSIS
 
     perl input_validator.pl \
-        --covstats I<file1>,I<file2> \
-        --mark I<file1>,I<file2> \
-        --ssu I<file> \
-        --trna I<file> \
-        --user I<file1>,I<file2> \
-        --outdir I<string>
+        --covstats file1,file2 \
+        --mark file1,file2 \
+        --ssu file \
+        --trna file \
+        --user file1,file2 \
+        --outdir string
 
     perl input_validator.pl --help
 
@@ -144,7 +144,7 @@ GetOptions("covstats=s" => \$covstats_in,
            "user=s" => \$user_in,
            "outdir|o=s" => \$outdir,
            "log=s" => \$logfile,
-           'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 2); },
+           'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 1); },
            'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
            ) or pod2usage(-message => "Error in input arguments", -existatus => 2);
 
