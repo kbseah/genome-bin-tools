@@ -17,15 +17,15 @@
 #' @export
 
 fastgFish.gbt <- function (x, # Object of class gbt (parent object of the bin)
-                              bin, # Object of class gbtbin
-                              fastg.file, # Fastg assembly graph
-                              paths.file, # scaffolds.paths or contigs.paths file
-                              fasta.file, # scaffolds.fasta or contigs.fasta file
-                              depth=0, # Number of iterations to fish (Default 0 - exhaustive)
-                              save=FALSE, # Save result to external file? Default no
-                              file="fished_bin.list", # File name to save result
-                              script.path="/home/kbseah/tools/my_scripts/genome-bin-tools/accessory_scripts/fastg_paths_fishing.pl"
-                              ) {
+                           bin, # Object of class gbtbin
+                           fastg.file, # Fastg assembly graph
+                           paths.file, # scaffolds.paths or contigs.paths file
+                           fasta.file, # scaffolds.fasta or contigs.fasta file
+                           depth=0, # Number of iterations to fish (Default 0 - exhaustive)
+                           save=FALSE, # Save result to external file? Default no
+                           file="fished_bin.list", # File name to save result
+                           script.path=system.file("Perl","fastg_paths_fishing.pl",package="gbtools")
+                           ) {
     script.path=script.path
     command <- "perl"
     command.params <- paste(script.path,
