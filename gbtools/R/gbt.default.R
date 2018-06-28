@@ -15,7 +15,7 @@
 #' @param ssu Table of scaffolds with SSU rRNA genes, and taxonomic info
 #'             for each SSU. E.g. use get_ssu_for_genome_bin_tools.pl.
 #'             (optional)
-#' @param tnra Table of tRNA genes found in assembly. Can use the output from
+#' @param trna Table of tRNA genes found in assembly. Can use the output from
 #'              tRNAscan-SE directly. (optional)
 #' @param dec Decimal separator used in covstats tables. Default is the
 #'            current locale default found with getOption("OutDec")

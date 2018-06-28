@@ -58,6 +58,11 @@ Name for message log file.
 
 Default: input_validator.log
 
+=item --rflag
+
+Flag used by R function gbt.checkinput() in gbtools library. Ignore if calling the
+script independently of the R workspace.
+
 =item --help|-h
 
 Help message
@@ -114,6 +119,8 @@ my ($covstats_in, # Comma-separated list of covstats files
 
 my $logfile = "input_validator.log"; # Default name for log file
 my $do_out = 0;
+my $rflag;
+my %errorcounts;
 my @covstats_split;
 my @mark_split;
 my %scaffolds_hash;
@@ -144,6 +151,7 @@ GetOptions("covstats=s" => \$covstats_in,
            "user=s" => \$user_in,
            "outdir|o=s" => \$outdir,
            "log=s" => \$logfile,
+           "rflag" => \$rflag,
            'help|h' => sub { pod2usage( -exitstatus => 2, -verbose => 1); },
            'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) }
            ) or pod2usage(-message => "Error in input arguments", -existatus => 2);
@@ -170,33 +178,33 @@ if (defined $outdir) {
 ## If only one covstats file supplied 
 @covstats_split = split(",",$covstats_in);
 if (scalar (@covstats_split) == 1) {
-    check_covstats($covstats_in,1);
+    $errorcounts{$covstats_in} = check_covstats($covstats_in,1);
 }
 ## Else if more than one covstats file supplied, the first one is used to hash
 ##  the scaffold IDs, to check the other covstats files.
 elsif (scalar (@covstats_split) > 1 ) {
-    check_covstats($covstats_split[0],1);
+    $errorcounts{$covstats_split[0]} = check_covstats($covstats_split[0],1);
     shift @covstats_split;
     foreach my $thecovstats (@covstats_split) {
-        check_covstats($thecovstats,0);
+        $errorcounts{$thecovstats} = check_covstats($thecovstats,0);
     }
 }
 if (defined $mark_in) {
     @mark_split = split(",",$mark_in);
     foreach my $themark (@mark_split) {
-        check_mark($themark, "Mark");
+        $errorcounts{$themark} = check_mark($themark, "Mark");
     }
 }
 if (defined $ssu_in) {
-    check_mark($ssu_in, "SSU");
+    $errorcounts{$ssu_in} = check_mark($ssu_in, "SSU");
 }
 if (defined $trna_in) {
-    check_trna($trna_in)
+    $errorcounts{$trna_in} = check_trna($trna_in);
 }
 if (defined $user_in) {
     my @user_split = split (",",$user_in);
     foreach my $theuser (@user_split) {
-        check_mark($theuser, "User");
+        $errorcounts{$theuser} = check_mark($theuser, "User");
     }
 }
 
@@ -210,12 +218,22 @@ open(LOGOUT, ">>", $outpath)
 print LOGOUT join "\n", @msg_log;
 close(LOGOUT);
 
+if ($rflag) {
+    # If called from R function, report error counts per input file to STDOUT
+    foreach my $input_file (sort {$a cmp $b} keys %errorcounts) {
+        print STDOUT "$input_file\n";
+        print STDOUT $errorcounts{$input_file}."\n";
+    }
+}
+
+
 ## SUBROUTINES ################################################################
 
 sub check_covstats {
     my ($infile, $first) = @_;
     my ($invol,$indir,$infilename) = File::Spec->splitpath($infile);
     my $fatalerr = 0;
+    my $commentcharerr = 0;
     my $linecount = 0;
     ## Open output file, if option to write given
     my $outfile;
@@ -239,6 +257,7 @@ sub check_covstats {
             msg ("Offending character will be removed in output", \@msg_log);
         } else {
             msg ("Covstats file $infile: You must remove the comment character \# from the first line", \@msg_log);
+            $commentcharerr++;
         };
         $firstline = $1;
     }
@@ -314,6 +333,7 @@ sub check_covstats {
     if ($fatalerr == 0 ) {
         msg ("Covstats file $infile: No fatal errors detected", \@msg_log);
     }
+    return ($fatalerr+$commentcharerr);
 }
 
 sub check_mark { # Also works for SSU tables
@@ -396,6 +416,7 @@ sub check_mark { # Also works for SSU tables
     if ($fatalerr==0) {
         msg ("$type file $infile: No fatal errors detected", \@msg_log);
     }
+    return ($fatalerr);
 }
 
 sub check_trna {
@@ -429,6 +450,7 @@ sub check_trna {
     if ($fatalerr==0) {
         msg ("tRNA file $infile: No fatal errors detected", \@msg_log);
     }
+    return ($fatalerr);
     
 }
 
