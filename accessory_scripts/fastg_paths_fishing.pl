@@ -1,0 +1,1 @@
+../gbtools/inst/Perl/fastg_paths_fishing.pl
